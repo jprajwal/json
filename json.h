@@ -20,14 +20,26 @@ namespace json
     {
 
     public:
+        // default json object
         Json();
+
+        // json string
         Json(std::string str);
         Json(const char *str);
+
+        // json object
         Json(std::initializer_list<PairOfStringAndJson> pairs);
+
+        // TODO: copy and move constructors required?
         Json(const Json &);
         Json(const Json &&);
 
+        // TODO: serializer? or seperate interface needed?
         friend std::ostream &operator<<(std::ostream &out, const Json &js);
+
+        // object related operations
+        // 1. object access interface
+        Json &operator[](const String &key);
 
         enum class Type
         {

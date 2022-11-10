@@ -33,10 +33,49 @@ void testJsonObjectCreation()
     std::cout << j << std::endl;
 }
 
+void testObjectValidIndexing()
+{
+    using json::Json;
+    Json j{{"key1", "value1"}, {"key2", "value2"}};
+    std::cout << "key: key1, value: " << j["key1"] << std::endl;
+}
+
+void testObjectInvalidIndexing()
+{
+    using json::Json;
+    Json j{"string"};
+    try
+    {
+        j["something"];
+    }
+    catch (std::runtime_error &error)
+    {
+        std::cout << error.what() << std::endl;
+    }
+}
+
+void testObjectValidIndexButNotPresent()
+{
+    using json::Json;
+    Json j{{"key1", "value1"}, {"key2", "value2"}};
+    // std::cout << "key: key1, value: " << j["invalid"] << std::endl;
+    try
+    {
+        const auto &value{j["not_existing_key"]};
+    }
+    catch (std::runtime_error &error)
+    {
+        std::cout << error.what() << std::endl;
+    }
+}
+
 int main()
 {
     testJsonInitializerList();
     testJsonCopyConstructor();
     testJsonObjectComplexType();
     testJsonObjectCreation();
+    testObjectValidIndexing();
+    testObjectValidIndexButNotPresent();
+    testObjectInvalidIndexing();
 }

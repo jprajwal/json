@@ -88,4 +88,17 @@ namespace json
 		return out;
 	}
 
+	Json &Json::operator[](const String &key)
+	{
+		if (mType != Type::Object)
+		{
+			throw std::runtime_error{"string indexing not supported for this json type"};
+		}
+		if (mObjectPtr->find(key) == mObjectPtr->cend())
+		{
+			throw std::runtime_error("keyerror: provided key does not exist in this json object");
+		}
+		return (*mObjectPtr)[key];
+	}
+
 } // namespace json
