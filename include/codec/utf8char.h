@@ -3,6 +3,7 @@
 
 #include "rune.h"
 #include <cassert>
+#include <stdexcept>
 
 namespace json {
 namespace codec {

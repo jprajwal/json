@@ -1,6 +1,8 @@
 #ifndef JSON_CODEC_ICODEC_H
 #define JSON_CODEC_ICODEC_H
 
+#include "rune.h"
+
 #include <vector>
 
 namespace json {

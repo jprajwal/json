@@ -90,3 +90,5 @@ Json &Json::operator[](const String &key) {
 }
 
 } // namespace json
+
+// int main() {}

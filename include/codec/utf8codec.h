@@ -45,18 +45,18 @@ public:
     switch (ch.size()) {
     case 4:
       rune = (buf[0] & 0b0000'0111);
-      rune = (rune << 6) & (buf[1] & 0b0011'1111);
-      rune = (rune << 6) & (buf[2] & 0b0011'1111);
-      rune = (rune << 6) & (buf[3] & 0b0011'1111);
+      rune = (rune << 6) | (buf[1] & 0b0011'1111);
+      rune = (rune << 6) | (buf[2] & 0b0011'1111);
+      rune = (rune << 6) | (buf[3] & 0b0011'1111);
       return rune;
     case 3:
       rune = (buf[0] & 0b0000'1111);
-      rune = (rune << 6) & (buf[1] & 0b0011'1111);
-      rune = (rune << 6) & (buf[2] & 0b0011'1111);
+      rune = (rune << 6) | (buf[1] & 0b0011'1111);
+      rune = (rune << 6) | (buf[2] & 0b0011'1111);
       return rune;
     case 2:
       rune = (buf[0] & 0b0001'1111);
-      rune = (rune << 6) & (buf[1] & 0b0011'1111);
+      rune = (rune << 6) | (buf[1] & 0b0011'1111);
       return rune;
     case 1:
       rune = buf[0];
@@ -74,7 +74,7 @@ public:
     if (toDecode.size() == 0) {
       return std::vector<Rune>{};
     }
-    std::vector<Rune> decoded(toDecode.size());
+    std::vector<Rune> decoded{};
     auto data = toDecode.data();
     const char *cur = data;
     const char *end = data + toDecode.size();

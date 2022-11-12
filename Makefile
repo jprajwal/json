@@ -1,18 +1,49 @@
-CC = clang++
+CC			:= g++
+ROOT		:= $(shell pwd)
+INCs		:= $(ROOT)/include/
+CFLAGS		:= -I$(INCs) --std=c++17
+SRCDIR		:= $(ROOT)/src
+BUILDDIR	:= $(ROOT)/.build
+SRCs		:= $(shell find $(SRCDIR) -type f -name '*.cpp')
+OBJs		:= $(patsubst %.cpp,%.o,$(SRCs))
+OBJs		:= $(patsubst $(SRCDIR)%,$(BUILDDIR)%,$(OBJs))
 
-BLDCMD = $(CC) --std=c++17
+build: $(OBJs) | $(BUILDDIR)
+	$(CC) $(CFLAGS) -o test $?
 
-test: json.o string.o object.o
-	$(BLDCMD) json.o string.o object.o test.cpp -o test
+# $(OBJs): $(SRCs) | $(BUILDDIR)
+# 	$(CC) $(CFLAGS) -o $@ -c $<
 
-json.o: string.o object.o
-	$(BLDCMD) -c json.cpp
+$(BUILDDIR)/%.o: $(SRCDIR)/%.cpp
+	mkdir -p $(@D)
+	$(CC) $(CFLAGS) -o $@ -c $<
 
-string.o:
-	$(BLDCMD) -c string.cpp
-
-object.o:
-	$(BLDCMD) -c object.cpp
+$(BUILDDIR):
+	mkdir -p $(BUILDDIR)
 
 clean:
-	rm *.o
+	rm -rf .build .test
+
+TESTDIR := $(ROOT)/.test
+TESTSRCDIR := $(ROOT)/tests
+TESTS := $(shell find $(TESTSRCDIR) -type f -name '*.cpp')
+TESTEXEs := $(patsubst %.cpp,%,$(TESTS))
+TESTEXEs := $(patsubst $(TESTSRCDIR)%,$(TESTDIR)%,$(TESTEXEs))
+
+test: pretest $(TESTEXEs)
+	echo "Start testing"
+	echo "tests: " $(TESTS)
+	echo "testexes: " $(TESTEXEs)
+
+pretest:
+	rm -rf $(TESTDIR)
+	mkdir -p $(TESTDIR)
+
+
+$(TESTDIR)/%: $(TESTSRCDIR)/%.cpp $(OBJs)
+	mkdir -p $(@D)
+	$(CC) $(CFLAGS) -o $@ $< $(OBJs)
+	bash -c $@
+
+$(TESTDIR):
+	mkdir -p $(ROOT)/.test
