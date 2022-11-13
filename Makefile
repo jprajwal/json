@@ -1,12 +1,12 @@
-CC			:= g++
-ROOT		:= $(shell pwd)
-INCs		:= $(ROOT)/include/
-CFLAGS		:= -I$(INCs) --std=c++17
-SRCDIR		:= $(ROOT)/src
-BUILDDIR	:= $(ROOT)/.build
-SRCs		:= $(shell find $(SRCDIR) -type f -name '*.cpp')
-OBJs		:= $(patsubst %.cpp,%.o,$(SRCs))
-OBJs		:= $(patsubst $(SRCDIR)%,$(BUILDDIR)%,$(OBJs))
+CC := g++
+ROOT := $(shell pwd)
+INCs := $(ROOT)/include/
+CFLAGS := -I$(INCs) --std=c++17
+SRCDIR := $(ROOT)/src
+BUILDDIR := $(ROOT)/.build
+SRCs := $(shell find $(SRCDIR) -type f -name '*.cpp')
+OBJs := $(patsubst %.cpp,%.o,$(SRCs))
+OBJs := $(patsubst $(SRCDIR)%,$(BUILDDIR)%,$(OBJs))
 
 build: $(OBJs) | $(BUILDDIR)
 	$(CC) $(CFLAGS) -o test $?
