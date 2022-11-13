@@ -37,7 +37,7 @@ private:
 
   static bool copy(char *dest, const char *src, std::size_t size) {
     // memcpy(dest, src, size);
-    for (int i{0}; i < size; ++i) {
+    for (std::size_t i{0}; i < size; ++i) {
       dest[i] = src[i];
     }
     return true;

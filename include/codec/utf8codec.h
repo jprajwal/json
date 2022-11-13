@@ -35,7 +35,7 @@ public:
     }
   }
 
-  UTF8Char fromRune(Rune) {}
+  UTF8Char fromRune(Rune) { return UTF8Char(nullptr, 0); }
 
   Rune toRune(UTF8Char ch) {
     Rune rune{0};

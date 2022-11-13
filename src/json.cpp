@@ -1,27 +1,22 @@
 #include "json.h"
 
+#include <stdexcept>
+
 namespace json {
 
 Json::Json() : mType{Type::Null}, mNull{}, mObjectPtr{}, mString{} {}
 
 Json::Json(std::string str)
-    : mType{Type::String}, mNull{}, mObjectPtr{}, mString{std::move(str)} {
-  std::cout << "constructing json string" << std::endl;
-}
+    : mType{Type::String}, mNull{}, mObjectPtr{}, mString{std::move(str)} {}
 
 Json::Json(const char *str)
-    : mType{Type::String}, mNull{}, mObjectPtr{}, mString{str} {
-  std::cout << "constructing json string from char*" << std::endl;
-}
+    : mType{Type::String}, mNull{}, mObjectPtr{}, mString{str} {}
 
 Json::Json(std::initializer_list<PairOfStringAndJson> pairs)
     : mType{Type::Object}, mNull{},
-      mObjectPtr{std::make_shared<Object>(std::move(pairs))}, mString{} {
-  std::cout << "constructing json object" << std::endl;
-}
+      mObjectPtr{std::make_shared<Object>(std::move(pairs))}, mString{} {}
 
 Json::Json(const Json &js) {
-  std::cout << "Json Copy Constructor" << std::endl;
   this->mType = js.mType;
   this->mNull = js.mNull;
   this->mObjectPtr = js.mObjectPtr;
@@ -29,7 +24,6 @@ Json::Json(const Json &js) {
 }
 
 Json::Json(const Json &&js) {
-  std::cout << "Json Move Constructor" << std::endl;
   this->mType = std::move(js.mType);
   this->mNull = std::move(js.mNull);
   this->mObjectPtr = std::move(js.mObjectPtr);
@@ -37,7 +31,6 @@ Json::Json(const Json &&js) {
 }
 
 Json &Json::operator=(const Json &js) {
-  std::cout << "Json Copy assignment" << std::endl;
   if (this == &js) {
     return *this;
   }
@@ -50,7 +43,6 @@ Json &Json::operator=(const Json &js) {
 }
 
 Json &Json::operator=(const Json &&js) {
-  std::cout << "Json Move assignment" << std::endl;
   if (this == &js) {
     return *this;
   }
@@ -82,13 +74,26 @@ Json &Json::operator[](const String &key) {
     throw std::runtime_error{
         "string indexing not supported for this json type"};
   }
-  if (mObjectPtr->find(key) == mObjectPtr->cend()) {
-    throw std::runtime_error(
-        "keyerror: provided key does not exist in this json object");
-  }
   return (*mObjectPtr)[key];
 }
 
+bool operator==(const Json &lhs, const Json &rhs) {
+  if (lhs.mType != rhs.mType) {
+    return false;
+  }
+  switch (lhs.mType) {
+  case Json::Type::String:
+    return lhs.mString == rhs.mString;
+  case Json::Type::Null:
+    return true;
+  case Json::Type::Object:
+    return *lhs.mObjectPtr == *rhs.mObjectPtr;
+  default:
+    return false;
+  }
+}
+
+bool operator!=(const Json &lhs, const Json &rhs) { return !(lhs == rhs); }
 } // namespace json
 
 // int main() {}

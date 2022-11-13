@@ -32,8 +32,11 @@ public:
   Json(const Json &);
   Json(const Json &&);
 
+  // common operations on json
   // TODO: serializer? or seperate interface needed?
   friend std::ostream &operator<<(std::ostream &out, const Json &js);
+  friend bool operator==(const Json &, const Json &);
+  friend bool operator!=(const Json &, const Json &);
 
   // object related operations
   // 1. object access interface

@@ -1,12 +1,18 @@
 CC := g++
 ROOT := $(shell pwd)
 INCs := $(ROOT)/include/
-CFLAGS := -I$(INCs) --std=c++17
 SRCDIR := $(ROOT)/src
 BUILDDIR := $(ROOT)/.build
 SRCs := $(shell find $(SRCDIR) -type f -name '*.cpp')
 OBJs := $(patsubst %.cpp,%.o,$(SRCs))
 OBJs := $(patsubst $(SRCDIR)%,$(BUILDDIR)%,$(OBJs))
+CFLAGS_BASE := -I$(INCs) --std=c++17 -Wall
+
+ifeq ($(NDEBUG),1)
+	CFLAGS := $(CFLAGS_BASE) -DNDEBUG
+else
+	CFLAGS := $(CFLAGS_BASE) -g
+endif
 
 build: $(OBJs) | $(BUILDDIR)
 	$(CC) $(CFLAGS) -o test $?
@@ -31,9 +37,6 @@ TESTEXEs := $(patsubst %.cpp,%,$(TESTS))
 TESTEXEs := $(patsubst $(TESTSRCDIR)%,$(TESTDIR)%,$(TESTEXEs))
 
 test: pretest $(TESTEXEs)
-	echo "Start testing"
-	echo "tests: " $(TESTS)
-	echo "testexes: " $(TESTEXEs)
 
 pretest:
 	rm -rf $(TESTDIR)
