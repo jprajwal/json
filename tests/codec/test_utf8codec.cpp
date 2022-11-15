@@ -48,11 +48,10 @@ void assertContainersAreEqual(const std::vector<T> &lhs,
   assert(std::equal(lhs.cbegin(), lhs.cend(), rhs.cbegin()));
 }
 
-template <template <typename> typename Codec>
+template <typename Codec>
 void testDecoding(std::string &str,
                   const std::vector<json::codec::Rune> &expectedRuneArray) {
-#if 1
-  Codec<char> codec{};
+  Codec codec{};
   auto byteArray{std::vector<unsigned char>(str.cbegin(), str.cend())};
   auto binaryArray{convertByteArrayToBitSetArray(byteArray)};
   auto runeArray{codec.decode(str)};
@@ -61,7 +60,6 @@ void testDecoding(std::string &str,
   json::log << "-> bitset array: " << binaryArray << std::endl;
   json::log << "-> rune array: " << std::hex << runeArray << std::endl;
   assertContainersAreEqual<json::codec::Rune>(runeArray, expectedRuneArray);
-#endif
 }
 
 // https://www.cl.cam.ac.uk/~mgk25/ucs/examples/UTF-8-test.txt
@@ -130,11 +128,16 @@ void testUTF8CodecLastPossibleSeqOfThreeBytesLength() {
 }
 
 void testUTF8CodecUnexpectedContinuationBytes() {
-  unsigned char byteArray[] = {0x80, '\0'};
-  json::codec::UTF8Codec<char> codec{};
+  unsigned char byteArray[] = {0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x80, '\0'};
+  json::codec::UTF8Codec codec{};
   try {
+    auto data{reinterpret_cast<const char *>(byteArray)};
+    json::log << "For string: " << data << std::endl;
     const auto &result{codec.decode(reinterpret_cast<const char *>(byteArray))};
+    assert(false);
   } catch (std::runtime_error &error) {
+    assert(true);
+    json::log << error.what() << std::endl;
   }
   // std::vector<json::codec::Rune> expected{0x};
 }
