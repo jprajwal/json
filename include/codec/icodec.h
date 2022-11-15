@@ -3,15 +3,28 @@
 
 #include "rune.h"
 
+#include <stdexcept>
+#include <string>
 #include <vector>
 
 namespace json {
 namespace codec {
-class ICodec {
+
+template <typename CharT, typename Traits> class CodecTraitBase {
 public:
-  virtual std::vector<char> encode(const std::vector<Rune> &) = 0;
-  virtual std::vector<Rune> decode(const std::vector<char> &) = 0;
+  std::basic_string<CharT, Traits>
+  encode(const std::basic_string<CharT, Traits> &) {
+    throw std::runtime_error{"Operation not implemented"};
+  }
+
+  std::vector<Rune> decode(const std::basic_string<CharT, Traits> &) {
+    throw std::runtime_error{"Operation not implemented"};
+  }
 };
+
+template <typename CharT, typename Traits = std::char_traits<CharT>>
+class UTF8Codec : public CodecTraitBase<CharT, Traits> {};
+
 } // namespace codec
 } // namespace json
 

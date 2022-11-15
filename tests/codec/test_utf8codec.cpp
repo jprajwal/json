@@ -1,10 +1,10 @@
-
 #include "codec/utf8codec.h"
 #include "json.h"
 #include "test.h"
 
 #include <algorithm>
 #include <bitset>
+#include <cassert>
 #include <cstdint>
 #include <iostream>
 #include <string>
@@ -33,7 +33,7 @@ std::ostream &operator<< <char>(std::ostream &out,
 }
 
 std::vector<std::bitset<8>>
-convertByteArrayToBitSetArray(std::vector<char> &vec) {
+convertByteArrayToBitSetArray(std::vector<unsigned char> &vec) {
   std::vector<std::bitset<8>> binaryArray{};
   for (const auto &ch : vec) {
     std::bitset<8> binary{static_cast<unsigned long long>(ch)};
@@ -48,18 +48,20 @@ void assertContainersAreEqual(const std::vector<T> &lhs,
   assert(std::equal(lhs.cbegin(), lhs.cend(), rhs.cbegin()));
 }
 
-template <typename Codec>
+template <template <typename> typename Codec>
 void testDecoding(std::string &str,
                   const std::vector<json::codec::Rune> &expectedRuneArray) {
-  Codec codec{};
-  auto byteArray{std::vector(str.cbegin(), str.cend())};
+#if 1
+  Codec<char> codec{};
+  auto byteArray{std::vector<unsigned char>(str.cbegin(), str.cend())};
   auto binaryArray{convertByteArrayToBitSetArray(byteArray)};
-  auto runeArray{codec.decode(byteArray)};
+  auto runeArray{codec.decode(str)};
   json::log << "For string: " << str << std::endl;
   json::log << "-> byte array: " << std::hex << byteArray << std::endl;
   json::log << "-> bitset array: " << binaryArray << std::endl;
   json::log << "-> rune array: " << std::hex << runeArray << std::endl;
   assertContainersAreEqual<json::codec::Rune>(runeArray, expectedRuneArray);
+#endif
 }
 
 // https://www.cl.cam.ac.uk/~mgk25/ucs/examples/UTF-8-test.txt
@@ -109,6 +111,34 @@ void testUTF8CodecFirstPossibleSeqOfFourByteLength() {
   testDecoding<json::codec::UTF8Codec>(str, expected);
 }
 
+void testUTF8CodecLastPossibleSeqOfOneBytesLength() {
+  std::string str{""};
+  std::vector<json::codec::Rune> expected{0x0000007F};
+  testDecoding<json::codec::UTF8Codec>(str, expected);
+}
+
+void testUTF8CodecLastPossibleSeqOfTwoBytesLength() {
+  std::string str{"߿"};
+  std::vector<json::codec::Rune> expected{0x000007FF};
+  testDecoding<json::codec::UTF8Codec>(str, expected);
+}
+
+void testUTF8CodecLastPossibleSeqOfThreeBytesLength() {
+  std::string str{"￿"};
+  std::vector<json::codec::Rune> expected{0x0000FFFF};
+  testDecoding<json::codec::UTF8Codec>(str, expected);
+}
+
+void testUTF8CodecUnexpectedContinuationBytes() {
+  unsigned char byteArray[] = {0x80, '\0'};
+  json::codec::UTF8Codec<char> codec{};
+  try {
+    const auto &result{codec.decode(reinterpret_cast<const char *>(byteArray))};
+  } catch (std::runtime_error &error) {
+  }
+  // std::vector<json::codec::Rune> expected{0x};
+}
+
 int main() {
   testUTF8CodecSimpleASCIIDecoding();
   testUTF8CodecJapaneseDecoding();
@@ -117,4 +147,8 @@ int main() {
   testUTF8CodecFirstPossibleSeqOfTwoByteLength();
   testUTF8CodecFirstPossibleSeqOfThreeByteLength();
   testUTF8CodecFirstPossibleSeqOfFourByteLength();
+  testUTF8CodecLastPossibleSeqOfOneBytesLength();
+  testUTF8CodecLastPossibleSeqOfTwoBytesLength();
+  testUTF8CodecLastPossibleSeqOfThreeBytesLength();
+  testUTF8CodecUnexpectedContinuationBytes();
 }
