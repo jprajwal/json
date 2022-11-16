@@ -133,7 +133,7 @@ void testUTF8CodecUnexpectedContinuationBytes() {
   try {
     auto data{reinterpret_cast<const char *>(byteArray)};
     json::log << "For string: " << data << std::endl;
-    const auto &result{codec.decode(reinterpret_cast<const char *>(byteArray))};
+    const auto &result{codec.decode(data)};
     assert(false);
   } catch (std::runtime_error &error) {
     assert(true);
