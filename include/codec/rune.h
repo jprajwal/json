@@ -46,8 +46,8 @@ public:
   Rune operator|(Rune other) const { return mData | other.mData; }
   Rune operator|(std::uint32_t other) const { return mData | other; }
   operator std::uint32_t() { return mData; }
-  operator const std::uint32_t &() { return mData; }
-  operator std::uint32_t &() { return mData; }
+  // operator const std::uint32_t &() { return mData; }
+  // operator std::uint32_t &() { return mData; }
 #endif
   friend std::ostream &operator<<(std::ostream &out, const Rune &rune) {
     out << rune.mData;

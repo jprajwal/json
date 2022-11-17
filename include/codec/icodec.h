@@ -1,6 +1,9 @@
 #ifndef JSON_CODEC_ICODEC_H
 #define JSON_CODEC_ICODEC_H
 
+#include "continuationcodeunit.h"
+#include "ichar.h"
+#include "leadingcodeunit.h"
 #include "rune.h"
 
 #include <stdexcept>
@@ -13,6 +16,9 @@ namespace codec {
 template <typename CharT, typename Traits = std::char_traits<CharT>>
 class CodecTraitBase {
 public:
+  ICharBase<CharT> encodeSingle(Rune rune) {
+    throw std::runtime_error{"Operation not implemented"};
+  }
   std::basic_string<CharT, Traits>
   encode(const std::basic_string<CharT, Traits> &) {
     throw std::runtime_error{"Operation not implemented"};
