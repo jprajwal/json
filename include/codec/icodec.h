@@ -34,7 +34,7 @@ public:
       if (index + continuationUnitsCount > toDecode.length()) {
         throw std::runtime_error{std::to_string(index)};
       }
-      Rune rune{lcu.payload()};
+      Rune rune{static_cast<Rune>(lcu.payload())};
       ++cur;
       ++index;
 
@@ -44,7 +44,7 @@ public:
         if (!ccu.isValid()) {
           throw std::runtime_error{std::to_string(index + subIndex)};
         }
-        rune = (rune << ccu.payloadSize()) | ccu.payload();
+        rune = (rune << ccu.payloadSize()) | static_cast<Rune>(ccu.payload());
         ++cur;
         ++subIndex;
       }
