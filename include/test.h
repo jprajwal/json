@@ -1,3 +1,5 @@
+#ifndef JSON_TEST_H
+#define JSON_TEST_H
 #include <functional>
 #include <iostream>
 
@@ -24,3 +26,4 @@ public:
 };
 Log log{};
 } // namespace json
+#endif
