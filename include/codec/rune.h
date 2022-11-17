@@ -25,9 +25,9 @@ public:
     //   return ((BMP_1_START <= mData <= BMP_2_END) ||
     //           (BMP_2_START <= mData <= BMP_2_END) ||
     //           (SMP_START <= mData <= SMP_END));
-    return (isAscii() || isBMP() || isSMP());
+    return (isASCII() || isBMP() || isSMP());
   }
-  constexpr bool isAscii() const {
+  constexpr bool isASCII() const {
     return (ASCII_START <= mData) && (mData <= ASCII_END);
   }
   constexpr bool isBMP() const {
