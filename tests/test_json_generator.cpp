@@ -1,12 +1,15 @@
+#include "codec/jsoncodec.h"
 #include "codec/utf16/utf16char.h"
 #include "codec/utf16codec.h"
 #include "codec/utf8codec.h"
+#include "json.h"
 #include "test.h"
 
 #include <cstdint>
 #include <sstream>
 #include <string>
 
+/*
 std::string testJSONGenerator(std::string &str) {
   json::codec::UTF8Codec utf8{};
   json::codec::UTF16Codec utf16{};
@@ -35,9 +38,13 @@ std::string testJSONGenerator(std::string &str) {
   result.push_back('\"');
   return result;
 }
+*/
 
 int main() {
-  std::string str{"こんにabcち𝄞は"};
-  auto result{testJSONGenerator(str)};
-  json::log << result << std::endl;
+  json::Json js{"こんにabcち𝄞は"};
+  // auto result{testJSONGenerator(str)};
+  std::stringstream ss;
+  json::JSONCodec codec{};
+  codec.encode(ss, js);
+  json::log << ss.str() << std::endl;
 }

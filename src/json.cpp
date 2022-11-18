@@ -94,6 +94,14 @@ bool operator==(const Json &lhs, const Json &rhs) {
 }
 
 bool operator!=(const Json &lhs, const Json &rhs) { return !(lhs == rhs); }
+
+const Json::Type Json::type() const { return mType; }
+const String Json::innerString() const {
+  if (mType != Json::Type::String) {
+    throw std::runtime_error{"Invalid access"};
+  }
+  return mString;
+}
 } // namespace json
 
 // int main() {}

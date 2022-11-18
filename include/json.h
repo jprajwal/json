@@ -16,6 +16,12 @@ using PairOfStrings = std::pair<String, String>;
 using PairOfStringAndJson = std::pair<String, Json>;
 
 class Json {
+public:
+  enum class Type {
+    Object,
+    String,
+    Null,
+  };
 
 public:
   // default json object
@@ -42,11 +48,9 @@ public:
   // 1. object access interface
   Json &operator[](const String &key);
 
-  enum class Type {
-    Object,
-    String,
-    Null,
-  };
+  // Access methods
+  const Type type() const;
+  const String innerString() const;
 
 private:
   Type mType{Type::Null};
