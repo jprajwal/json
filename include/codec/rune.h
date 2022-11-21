@@ -6,7 +6,7 @@
 
 namespace json {
 namespace codec {
-// using Rune = std::uint32_t;
+
 class Rune {
   static constexpr uint32_t BMP_1_START = 0x0000;
   static constexpr uint32_t BMP_1_END = 0xD7FF;
@@ -21,12 +21,7 @@ class Rune {
 public:
   Rune() : mData{} {}
   Rune(std::uint32_t data) : mData{data} {}
-  constexpr bool isValid() const {
-    //   return ((BMP_1_START <= mData <= BMP_2_END) ||
-    //           (BMP_2_START <= mData <= BMP_2_END) ||
-    //           (SMP_START <= mData <= SMP_END));
-    return (isASCII() || isBMP() || isSMP());
-  }
+  constexpr bool isValid() const { return (isASCII() || isBMP() || isSMP()); }
   constexpr bool isASCII() const {
     return (ASCII_START <= mData) && (mData <= ASCII_END);
   }
@@ -46,8 +41,6 @@ public:
   Rune operator|(Rune other) const { return mData | other.mData; }
   Rune operator|(std::uint32_t other) const { return mData | other; }
   operator std::uint32_t() { return mData; }
-  // operator const std::uint32_t &() { return mData; }
-  // operator std::uint32_t &() { return mData; }
 #endif
   friend std::ostream &operator<<(std::ostream &out, const Rune &rune) {
     out << rune.mData;
@@ -63,7 +56,6 @@ private:
 };
 
 } // namespace codec
-
 } // namespace json
 
 #endif
