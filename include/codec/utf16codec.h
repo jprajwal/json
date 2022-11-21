@@ -3,7 +3,6 @@
 
 #include "ichar.h"
 #include "icodec.h"
-#include "test.h"
 
 #include <cstdint>
 #include <stdexcept>
@@ -24,11 +23,8 @@ public:
       return result;
     }
     const std::uint16_t temp{static_cast<std::uint16_t>(rune - 0x10000)};
-    json::log << std::hex << "temp: " << temp << std::endl;
     const std::uint16_t hs{static_cast<std::uint16_t>((temp >> 10) + 0xD800)};
-    json::log << std::hex << "hs: " << hs << std::endl;
     const std::uint16_t ls{static_cast<std::uint16_t>((temp & 0x3FF) + 0xDC00)};
-    json::log << std::hex << "ls: " << ls << std::endl;
     ICharBase<char16_t> ch(2);
     ch.at(0) = static_cast<char16_t>(hs);
     ch.at(1) = static_cast<char16_t>(ls);
