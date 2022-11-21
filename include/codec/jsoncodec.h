@@ -31,7 +31,7 @@ private:
     codec::UTF16Codec utf16{};
     const std::string str{js.innerString()};
     auto runeArray{utf8.decode(str)};
-    result << '\"';
+    result << '"';
     std::size_t index{0};
     for (auto rune : runeArray) {
       log << std::hex << "rune: " << rune << std::endl;
@@ -54,7 +54,7 @@ private:
       }
       ++index;
     }
-    result << '\"';
+    result << '"';
   }
 };
 } // namespace json
