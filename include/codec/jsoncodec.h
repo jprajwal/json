@@ -1,7 +1,7 @@
 #ifndef JSON_CODEC_JSONCODEC_H
 #define JSON_CODEC_JSONCODEC_H
 
-#include "codec/utf16/utf16char.h"
+#include "codec/utf16char.h"
 #include "codec/utf16codec.h"
 #include "codec/utf8codec.h"
 #include "json.h"

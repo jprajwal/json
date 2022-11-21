@@ -1,5 +1,5 @@
-#ifndef JSON_CODEC_UTF8_LEADINGCODEUNIT_H
-#define JSON_CODEC_UTF8_LEADINGCODEUNIT_H
+#ifndef JSON_CODEC_UTF8LEADINGCODEUNIT_H
+#define JSON_CODEC_UTF8LEADINGCODEUNIT_H
 #include "codec/leadingcodeunit.h"
 #include <string>
 

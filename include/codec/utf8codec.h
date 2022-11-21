@@ -1,8 +1,8 @@
 #ifndef JSON_CODEC_UTF8CODEC_H
 #define JSON_CODEC_UTF8CODEC_H
 
-#include "codec/utf8/continuationcodeunit.h"
-#include "codec/utf8/leadingcodeunit.h"
+#include "codec/utf8continuationcodeunit.h"
+#include "codec/utf8leadingcodeunit.h"
 #include "icodec.h"
 #include "rune.h"
 
