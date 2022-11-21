@@ -3,7 +3,6 @@
 
 #include "codec/utf8continuationcodeunit.h"
 #include "codec/utf8leadingcodeunit.h"
-#include "icodec.h"
 #include "rune.h"
 
 #include <stdexcept>
@@ -11,21 +10,58 @@
 
 namespace json {
 namespace codec {
+namespace utf8 {
 
-template <> class UTF8CodecBase<char> : public CodecTraitBase<char> {
-public:
-  std::vector<Rune> decode(const std::basic_string<char> &toDecode) {
+Rune decodeOne(std::string::const_iterator &cur,
+               const std::string::const_iterator &end) {
+
+  LeadingCodeUnit<char> lcu{*cur};
+  std::size_t index{0};
+  if (!lcu.isValid()) {
+    throw index;
+  }
+
+  auto continuationUnitsCount{lcu.continuationUnitsCount()};
+
+  if (index + continuationUnitsCount > std::distance(cur, end)) {
+    throw index;
+  }
+  Rune rune{static_cast<Rune>(lcu.payload())};
+  ++cur;
+  ++index;
+
+  std::size_t subIndex{0};
+  while (subIndex < continuationUnitsCount) {
+    ContinuationCodeUnit<char> ccu{*cur};
+    if (!ccu.isValid()) {
+      throw index + subIndex;
+    }
+    rune = (rune << ccu.payloadSize()) | static_cast<Rune>(ccu.payload());
+    ++cur;
+    ++subIndex;
+  }
+  return rune;
+}
+
+std::vector<Rune> decode(const std::string &toDecode) {
+
+  std::vector<Rune> decoded{};
+  auto cur{toDecode.begin()};
+  auto end{toDecode.end()};
+  std::size_t index{0};
+  while (cur < end) {
     try {
-      auto decoded{CodecTraitBase::decode(toDecode)};
-      return decoded;
-    } catch (std::runtime_error &error) {
-      throw std::runtime_error{std::string{"UTF8DecodeError: position: "} +
-                               error.what()};
+      auto rune{decodeOne(cur, end)};
+      decoded.push_back(rune);
+      ++index;
+    } catch (std::size_t subIndex) {
+      throw index + subIndex;
     }
   }
-};
+  return decoded;
+}
 
-typedef UTF8CodecBase<char> UTF8Codec;
+} // namespace utf8
 } // namespace codec
 } // namespace json
 
