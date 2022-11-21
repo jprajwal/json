@@ -1,5 +1,6 @@
 #include "codec/utf8leadingcodeunit.h"
 #include "test.h"
+#include <algorithm>
 #include <assert.h>
 #include <ios>
 #include <utility>

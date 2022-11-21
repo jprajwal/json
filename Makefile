@@ -1,11 +1,6 @@
 CC := g++
 ROOT := $(shell pwd)
 INCs := $(ROOT)/include/
-SRCDIR := $(ROOT)/src
-BUILDDIR := $(ROOT)/.build
-SRCs := $(shell find $(SRCDIR) -type f -name '*.cpp')
-OBJs := $(patsubst %.cpp,%.o,$(SRCs))
-OBJs := $(patsubst $(SRCDIR)%,$(BUILDDIR)%,$(OBJs))
 CFLAGS_BASE := -I$(INCs) --std=c++17 -Wall
 
 ifeq ($(NDEBUG),1)
@@ -13,12 +8,6 @@ ifeq ($(NDEBUG),1)
 else
 	CFLAGS := $(CFLAGS_BASE) -g
 endif
-
-build: $(OBJs) | $(BUILDDIR)
-	$(CC) $(CFLAGS) -o test $?
-
-# $(OBJs): $(SRCs) | $(BUILDDIR)
-# 	$(CC) $(CFLAGS) -o $@ -c $<
 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.cpp
 	mkdir -p $(@D)
@@ -28,7 +17,7 @@ $(BUILDDIR):
 	mkdir -p $(BUILDDIR)
 
 clean:
-	rm -rf .build .test
+	rm -rf .test
 
 TESTDIR := $(ROOT)/.test
 TESTSRCDIR := $(ROOT)/tests
@@ -43,9 +32,9 @@ pretest:
 	mkdir -p $(TESTDIR)
 
 
-$(TESTDIR)/%: $(TESTSRCDIR)/%.cpp $(OBJs)
+$(TESTDIR)/%: $(TESTSRCDIR)/%.cpp
 	mkdir -p $(@D)
-	$(CC) $(CFLAGS) -o $@ $< $(OBJs)
+	$(CC) $(CFLAGS) -o $@ $<
 	bash -c $@
 
 $(TESTDIR):
