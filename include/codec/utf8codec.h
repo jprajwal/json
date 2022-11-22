@@ -23,7 +23,8 @@ Rune decodeOne(std::string::const_iterator &cur,
 
   auto continuationUnitsCount{lcu.continuationUnitsCount()};
 
-  if (index + continuationUnitsCount > std::distance(cur, end)) {
+  if (static_cast<signed long>(index + continuationUnitsCount) >
+      std::distance(cur, end)) {
     throw index;
   }
   Rune rune{static_cast<Rune>(lcu.payload())};
