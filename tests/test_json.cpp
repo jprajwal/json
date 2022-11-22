@@ -40,4 +40,20 @@ int main() {
 }
 */
 
-int main() {}
+#include "json.h"
+#include <string>
+
+void testDefaultCstr() { json::Json j; }
+
+void testJsonStrCopyCstr() {
+  std::string s{"test"};
+  json::Json j{s};
+}
+
+void testJsonStrMoveCstr() { json::Json j{"test"}; }
+
+int main() {
+  testDefaultCstr();
+  testJsonStrCopyCstr();
+  testJsonStrMoveCstr();
+}
