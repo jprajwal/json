@@ -17,14 +17,17 @@ enum class Type {
   Object,
 };
 
-class Json {
+template <typename CharT = char> class JsonT {
 public:
-  Json() : mNull{} {}
-  Json(const char *str) : mType{Type::String}, mStr{str} {}
-  Json(const std::string &str) : mType{Type::String}, mStr{str} {}
-  Json(std::string &&str) : mType{Type::String}, mStr{std::move(str)} {}
+  using string_t = std::basic_string<CharT>;
+  using s_const_iterator = typename string_t::const_iterator;
 
-  ~Json() {
+  JsonT() : mNull{} {}
+  JsonT(const char *str) : mType{Type::String}, mStr{str} {}
+  JsonT(const string_t &str) : mType{Type::String}, mStr{str} {}
+  JsonT(string_t &&str) : mType{Type::String}, mStr{std::move(str)} {}
+
+  ~JsonT() {
     switch (mType) {
     case Type::String:
       mStr.~basic_string();
@@ -38,7 +41,7 @@ public:
 
   Type type() { return mType; }
 
-  bool operator==(const Json &other) {
+  bool operator==(const JsonT &other) {
     if (mType != other.mType) {
       return false;
     }
@@ -50,25 +53,21 @@ public:
     }
   }
 
-  using ConstStringIterator = std::string::const_iterator;
-
-  ConstStringIterator stringCBegin() {
+  s_const_iterator s_cbegin() {
     if (mType != Type::String) {
-      throw std::runtime_error{
-          "stringBegin() is supported only for json strings"};
+      throw std::runtime_error{"s_cbegin() is supported only for json strings"};
     }
     return mStr.cbegin();
   }
 
-  ConstStringIterator stringCEnd() {
+  s_const_iterator s_cend() {
     if (mType != Type::String) {
-      throw std::runtime_error{
-          "stringEnd() is supported only for json strings"};
+      throw std::runtime_error{"s_cend() is supported only for json strings"};
     }
     return mStr.cend();
   }
 
-  friend std::ostream &operator<<(std::ostream &out, const Json &js) {
+  friend std::ostream &operator<<(std::ostream &out, const JsonT &js) {
     switch (js.mType) {
     case Type::String:
       out << js.mStr;
@@ -86,10 +85,15 @@ private:
   Type mType{Type::Null};
   union {
     Null mNull{};
-    std::string mStr;
-    // std::map<std::string, Json> mMap;
+    string_t mStr;
   };
 };
+
+// Typedefs
+typedef JsonT<char> Json;
+typedef JsonT<char16_t> WJson;
+typedef JsonT<char32_t> QJson;
+
 } // namespace json
 
 #endif
