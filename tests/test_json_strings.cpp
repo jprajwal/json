@@ -23,12 +23,13 @@ void testJsonStrMoveCstr() {
 }
 
 void testJsonConstStringIterator() {
-  json::Json j{"test"};
-  for (auto ch{j.s_cbegin()}; ch != j.s_cend(); ++ch) {
-    json::log << *ch << ' ';
+  const json::Json j1{"test"};
+  json::str_iter<json::Json> iter(j1);
+  for (const auto ch : iter) {
+    json::log << ch << ' ';
   }
   json::log << std::endl;
-  assert(j == "test");
+  assert(j1 == "test");
 }
 
 void testJsonStringOstreamInsertion() {

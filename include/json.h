@@ -3,9 +3,10 @@
 
 #include "null.h"
 
+#include <initializer_list>
 #include <iostream>
+#include <iterator>
 #include <map>
-#include <memory>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -21,29 +22,121 @@ enum class Type {
 template <typename CharT = char> class JsonT {
 public:
   using string_t = std::basic_string<CharT>;
-  using s_citerator = typename string_t::const_iterator;
+  using object_t = std::map<string_t, JsonT>;
 
+  // defaults
   JsonT() : mNull{} {}
-  JsonT(const char *str) : mType{Type::String}, mStr{new string_t{str}} {}
-  JsonT(const string_t &str) : mType{Type::String}, mStr{new string_t{str}} {}
-  JsonT(string_t &&str)
-      : mType{Type::String}, mStr{new string_t{std::move(str)}} {}
 
-  ~JsonT() {
-    switch (mType) {
+  // Json strings
+  JsonT(const char *str) : mType{Type::String}, mStrPtr{new string_t{str}} {}
+  JsonT(const string_t &str)
+      : mType{Type::String}, mStrPtr{new string_t{str}} {}
+  JsonT(string_t &&str)
+      : mType{Type::String}, mStrPtr{new string_t{std::move(str)}} {}
+
+  // Json Objects
+  JsonT(std::initializer_list<std::pair<const string_t, JsonT>> pairs)
+      : mType{Type::Object}, mObjectPtr{new object_t{pairs}} {}
+
+  // Copy constructor
+  JsonT(const JsonT &other) : mType{other.mType}, mNull{} {
+    switch (other.mType) {
     case Type::String:
-      mStr.~unique_ptr();
-      break;
-    case Type::Null:
+      mStrPtr = new string_t{*other.mStrPtr};
       break;
     case Type::Object:
+      mObjectPtr = new object_t{*other.mObjectPtr};
+      break;
+    case Type::Null:
+      mNull = other.mNull;
       break;
     }
   }
 
-  Type type() { return mType; }
+  // Move constructor
+  JsonT(const JsonT &&other) noexcept : mType{other.mType}, mNull{} {
+    switch (other.mType) {
+    case Type::String:
+      mStrPtr = other.mStrPtr;
+      other.mType = Type::Null;
+      other.mNull = Null{};
+      break;
+    case Type::Object:
+      mObjectPtr = other.mObjectPtr;
+      other.mType = Type::Null;
+      other.mNull = Null{};
+      break;
+    case Type::Null:
+      mNull = other.mNull;
+      break;
+    }
+  }
 
-  bool operator==(const JsonT &other) {
+  // Assignments
+  // Copy Assignment
+  JsonT &operator=(const JsonT &other) {
+    if (this == &other) {
+      return *this;
+    }
+    switch (other.mType) {
+    case Type::String:
+      if (!mStrPtr) {
+        mStrPtr = new string_t{};
+      }
+      *mStrPtr = *other.mStrPtr;
+      break;
+    case Type::Object:
+      if (!mObjectPtr) {
+        mObjectPtr = new object_t{};
+      }
+      *mObjectPtr = *other.mObjectPtr;
+      break;
+    case Type::Null:
+      mNull = other.mNull;
+      break;
+    }
+    return *this;
+  }
+
+  // Move Assignment
+  JsonT &operator=(JsonT &&other) noexcept {
+    if (this == &other) {
+      return *this;
+    }
+    switch (other.mType) {
+    case Type::String:
+      mStrPtr = other.mStrPtr;
+      other.mType = Type::Null;
+      other.mNull = Null{};
+      break;
+    case Type::Object:
+      mObjectPtr = other.mObjectPtr;
+      other.mType = Type::Null;
+      other.mNull = Null{};
+      break;
+    case Type::Null:
+      mNull = other.mNull;
+      break;
+    }
+    return *this;
+  }
+
+  ~JsonT() {
+    switch (mType) {
+    case Type::String:
+      delete mStrPtr;
+      break;
+    case Type::Null:
+      break;
+    case Type::Object:
+      delete mObjectPtr;
+      break;
+    }
+  }
+
+  Type type() const { return mType; }
+
+  bool operator==(const JsonT &other) const {
     if (mType != other.mType) {
       return false;
     }
@@ -51,33 +144,59 @@ public:
     case Type::Null:
       return true;
     case Type::String:
-      return *mStr == *other.mStr;
+      return *mStrPtr == *other.mStrPtr;
+    case Type::Object:
+      return *mObjectPtr == *other.mObjectPtr;
     default:
       return false;
     }
   }
 
-  s_citerator s_cbegin() {
-    if (mType != Type::String) {
-      throw std::runtime_error{"s_cbegin() is supported only for json strings"};
-    }
-    return mStr->cbegin();
+  JsonT &operator[](const string_t &key) {
+    assertObject();
+    return (*mObjectPtr)[key];
   }
 
-  s_citerator s_cend() {
-    if (mType != Type::String) {
-      throw std::runtime_error{"s_cend() is supported only for json strings"};
+  typename object_t::iterator obj_find(const string_t &key) {
+    assertObject();
+    return mObjectPtr->find(key);
+  }
+
+  typename object_t::const_iterator obj_find(const string_t &key) const {
+    assertObject();
+    return mObjectPtr->find(key);
+  }
+
+  typename object_t::size_type obj_erase(const string_t &key) {
+    assertObject();
+    return mObjectPtr->erase(key);
+  }
+
+  friend std::ostream &operator<<(std::ostream &out, const object_t &obj) {
+    out << '{';
+    std::size_t count{0};
+
+    for (const auto &pair : obj) {
+      if (count > 0) {
+        out << ", ";
+      }
+      out << pair.first << " : " << pair.second;
+      ++count;
     }
-    return mStr->cend();
+    out << '}';
+    return out;
   }
 
   friend std::ostream &operator<<(std::ostream &out, const JsonT &js) {
     switch (js.mType) {
     case Type::String:
-      out << *js.mStr;
+      out << *js.mStrPtr;
       break;
     case Type::Null:
       out << js.mNull;
+      break;
+    case Type::Object:
+      out << *js.mObjectPtr;
       break;
     default:
       out << "Unimplemented";
@@ -86,10 +205,18 @@ public:
   }
 
 private:
+  void assertObject() {
+    if (mType != Type::Object) {
+      throw std::runtime_error{"Current json type is not Type::Object"};
+    }
+  }
+  template <typename T> friend class str_iter;
+  template <typename T> friend class obj_iter;
   Type mType{Type::Null};
   union {
     Null mNull{};
-    std::unique_ptr<string_t> mStr;
+    string_t *mStrPtr;
+    object_t *mObjectPtr;
   };
 };
 
@@ -97,6 +224,50 @@ private:
 typedef JsonT<char> Json;
 typedef JsonT<char16_t> WJson;
 typedef JsonT<char32_t> QJson;
+
+template <typename JsonT> class str_iter {
+public:
+  explicit str_iter(const JsonT &js) : mRef{js} {
+    if (mRef.type() != Type::String) {
+      throw std::runtime_error{"str_iter is supported only for json strings"};
+    }
+  }
+  typename JsonT::string_t::const_iterator begin() const {
+    return mRef.mStrPtr->cbegin();
+  }
+
+  typename JsonT::string_t::const_iterator end() const {
+    return mRef.mStrPtr->cend();
+  }
+
+private:
+  const JsonT &mRef;
+};
+
+template <typename JsonT> class obj_iter {
+public:
+  explicit obj_iter(const JsonT &js) : mRef{js} {
+    if (mRef.type() != Type::Object) {
+      throw std::runtime_error{"obj_iter is supported only for json objects"};
+    }
+  }
+  typename JsonT::object_t::const_iterator begin() const {
+    return mRef.mObjectPtr->cbegin();
+  }
+
+  typename JsonT::object_t::const_iterator end() const {
+    return mRef.mObjectPtr->cend();
+  }
+
+  typename JsonT::object_t::iterator begin() {
+    return mRef.mObjectPtr->begin();
+  }
+
+  typename JsonT::object_t::iterator end() { return mRef.mObjectPtr->end(); }
+
+private:
+  const JsonT &mRef;
+};
 
 } // namespace json
 
