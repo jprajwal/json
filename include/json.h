@@ -2,6 +2,7 @@
 #define JSON_JSON_H
 
 #include "null.h"
+#include "test.h"
 
 #include <initializer_list>
 #include <iostream>
@@ -9,6 +10,7 @@
 #include <map>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <utility>
 
 namespace json {
@@ -54,7 +56,7 @@ public:
   }
 
   // Move constructor
-  JsonT(const JsonT &&other) noexcept : mType{other.mType}, mNull{} {
+  JsonT(JsonT &&other) noexcept : mType{other.mType}, mNull{} {
     switch (other.mType) {
     case Type::String:
       mStrPtr = other.mStrPtr;
@@ -84,15 +86,18 @@ public:
         mStrPtr = new string_t{};
       }
       *mStrPtr = *other.mStrPtr;
+      mType = other.mType;
       break;
     case Type::Object:
       if (!mObjectPtr) {
         mObjectPtr = new object_t{};
       }
       *mObjectPtr = *other.mObjectPtr;
+      mType = other.mType;
       break;
     case Type::Null:
       mNull = other.mNull;
+      mType = other.mType;
       break;
     }
     return *this;
@@ -100,22 +105,31 @@ public:
 
   // Move Assignment
   JsonT &operator=(JsonT &&other) noexcept {
-    if (this == &other) {
-      return *this;
-    }
+    json::log << "Move assignment: other = " << other << std::endl;
     switch (other.mType) {
     case Type::String:
+      json::log << "case string" << std::endl;
+      if (mType != Type::String || !mStrPtr) {
+        mStrPtr = new string_t{};
+      }
+
       mStrPtr = other.mStrPtr;
+      mType = other.mType;
       other.mType = Type::Null;
       other.mNull = Null{};
       break;
     case Type::Object:
+      if (mType != Type::Object || !mObjectPtr) {
+        mObjectPtr = new object_t{};
+      }
       mObjectPtr = other.mObjectPtr;
+      mType = other.mType;
       other.mType = Type::Null;
       other.mNull = Null{};
       break;
     case Type::Null:
       mNull = other.mNull;
+      mType = other.mType;
       break;
     }
     return *this;
@@ -157,17 +171,17 @@ public:
     return (*mObjectPtr)[key];
   }
 
-  typename object_t::iterator obj_find(const string_t &key) {
+  typename object_t::iterator objFind(const string_t &key) {
     assertObject();
     return mObjectPtr->find(key);
   }
 
-  typename object_t::const_iterator obj_find(const string_t &key) const {
+  typename object_t::const_iterator objFind(const string_t &key) const {
     assertObject();
     return mObjectPtr->find(key);
   }
 
-  typename object_t::size_type obj_erase(const string_t &key) {
+  typename object_t::size_type objErase(const string_t &key) {
     assertObject();
     return mObjectPtr->erase(key);
   }
@@ -212,6 +226,7 @@ private:
   }
   template <typename T> friend class str_iter;
   template <typename T> friend class obj_iter;
+
   Type mType{Type::Null};
   union {
     Null mNull{};
@@ -225,7 +240,7 @@ typedef JsonT<char> Json;
 typedef JsonT<char16_t> WJson;
 typedef JsonT<char32_t> QJson;
 
-template <typename JsonT> class str_iter {
+template <typename JsonT = Json> class str_iter {
 public:
   explicit str_iter(const JsonT &js) : mRef{js} {
     if (mRef.type() != Type::String) {
@@ -244,7 +259,7 @@ private:
   const JsonT &mRef;
 };
 
-template <typename JsonT> class obj_iter {
+template <typename JsonT = Json> class obj_iter {
 public:
   explicit obj_iter(const JsonT &js) : mRef{js} {
     if (mRef.type() != Type::Object) {
