@@ -2,7 +2,6 @@
 #define JSON_JSON_H
 
 #include "null.h"
-#include "test.h"
 
 #include <initializer_list>
 #include <iostream>
@@ -10,7 +9,6 @@
 #include <map>
 #include <stdexcept>
 #include <string>
-#include <type_traits>
 #include <utility>
 
 namespace json {
@@ -80,24 +78,18 @@ public:
     if (this == &other) {
       return *this;
     }
+    deleteCurrent();
+    mType = other.mType;
+
     switch (other.mType) {
     case Type::String:
-      if (!mStrPtr) {
-        mStrPtr = new string_t{};
-      }
-      *mStrPtr = *other.mStrPtr;
-      mType = other.mType;
+      mStrPtr = new string_t{*other.mStrPtr};
       break;
     case Type::Object:
-      if (!mObjectPtr) {
-        mObjectPtr = new object_t{};
-      }
-      *mObjectPtr = *other.mObjectPtr;
-      mType = other.mType;
+      mObjectPtr = new object_t{*other.mObjectPtr};
       break;
     case Type::Null:
       mNull = other.mNull;
-      mType = other.mType;
       break;
     }
     return *this;
@@ -105,48 +97,27 @@ public:
 
   // Move Assignment
   JsonT &operator=(JsonT &&other) noexcept {
-    json::log << "Move assignment: other = " << other << std::endl;
+    deleteCurrent();
+    mType = other.mType;
+
     switch (other.mType) {
     case Type::String:
-      json::log << "case string" << std::endl;
-      if (mType != Type::String || !mStrPtr) {
-        mStrPtr = new string_t{};
-      }
-
       mStrPtr = other.mStrPtr;
-      mType = other.mType;
-      other.mType = Type::Null;
-      other.mNull = Null{};
       break;
     case Type::Object:
-      if (mType != Type::Object || !mObjectPtr) {
-        mObjectPtr = new object_t{};
-      }
       mObjectPtr = other.mObjectPtr;
-      mType = other.mType;
-      other.mType = Type::Null;
-      other.mNull = Null{};
       break;
     case Type::Null:
       mNull = other.mNull;
-      mType = other.mType;
       break;
     }
+
+    other.mType = Type::Null;
+    other.mNull = Null{};
     return *this;
   }
 
-  ~JsonT() {
-    switch (mType) {
-    case Type::String:
-      delete mStrPtr;
-      break;
-    case Type::Null:
-      break;
-    case Type::Object:
-      delete mObjectPtr;
-      break;
-    }
-  }
+  ~JsonT() { deleteCurrent(); }
 
   Type type() const { return mType; }
 
@@ -222,6 +193,18 @@ private:
   void assertObject() {
     if (mType != Type::Object) {
       throw std::runtime_error{"Current json type is not Type::Object"};
+    }
+  }
+  void deleteCurrent() {
+    switch (mType) {
+    case Type::String:
+      delete mStrPtr;
+      break;
+    case Type::Null:
+      break;
+    case Type::Object:
+      delete mObjectPtr;
+      break;
     }
   }
   template <typename T> friend class str_iter;
