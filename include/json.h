@@ -19,27 +19,26 @@ enum class Type {
   Object,
 };
 
-template <typename CharT = char> class JsonT {
+class Json {
 public:
-  using string_t = std::basic_string<CharT>;
-  using object_t = std::map<string_t, JsonT>;
+  using string_t = std::string;
+  using object_t = std::map<string_t, Json>;
 
   // defaults
-  JsonT() : mNull{} {}
+  Json() : mNull{} {}
 
   // Json strings
-  JsonT(const char *str) : mType{Type::String}, mStrPtr{new string_t{str}} {}
-  JsonT(const string_t &str)
-      : mType{Type::String}, mStrPtr{new string_t{str}} {}
-  JsonT(string_t &&str)
+  Json(const char *str) : mType{Type::String}, mStrPtr{new string_t{str}} {}
+  Json(const string_t &str) : mType{Type::String}, mStrPtr{new string_t{str}} {}
+  Json(string_t &&str)
       : mType{Type::String}, mStrPtr{new string_t{std::move(str)}} {}
 
   // Json Objects
-  JsonT(std::initializer_list<std::pair<const string_t, JsonT>> pairs)
+  Json(std::initializer_list<std::pair<const string_t, Json>> pairs)
       : mType{Type::Object}, mObjectPtr{new object_t{pairs}} {}
 
   // Copy constructor
-  JsonT(const JsonT &other) : mType{other.mType}, mNull{} {
+  Json(const Json &other) : mType{other.mType}, mNull{} {
     switch (other.mType) {
     case Type::String:
       mStrPtr = new string_t{*other.mStrPtr};
@@ -54,7 +53,7 @@ public:
   }
 
   // Move constructor
-  JsonT(JsonT &&other) noexcept : mType{other.mType}, mNull{} {
+  Json(Json &&other) noexcept : mType{other.mType}, mNull{} {
     switch (other.mType) {
     case Type::String:
       mStrPtr = other.mStrPtr;
@@ -74,7 +73,7 @@ public:
 
   // Assignments
   // Copy Assignment
-  JsonT &operator=(const JsonT &other) {
+  Json &operator=(const Json &other) {
     if (this == &other) {
       return *this;
     }
@@ -96,7 +95,7 @@ public:
   }
 
   // Move Assignment
-  JsonT &operator=(JsonT &&other) noexcept {
+  Json &operator=(Json &&other) noexcept {
     deleteCurrent();
     mType = other.mType;
 
@@ -117,11 +116,11 @@ public:
     return *this;
   }
 
-  ~JsonT() { deleteCurrent(); }
+  ~Json() { deleteCurrent(); }
 
   Type type() const { return mType; }
 
-  bool operator==(const JsonT &other) const {
+  bool operator==(const Json &other) const {
     if (mType != other.mType) {
       return false;
     }
@@ -137,7 +136,7 @@ public:
     }
   }
 
-  JsonT &operator[](const string_t &key) {
+  Json &operator[](const string_t &key) {
     assertObject();
     return (*mObjectPtr)[key];
   }
@@ -172,7 +171,7 @@ public:
     return out;
   }
 
-  friend std::ostream &operator<<(std::ostream &out, const JsonT &js) {
+  friend std::ostream &operator<<(std::ostream &out, const Json &js) {
     switch (js.mType) {
     case Type::String:
       out << *js.mStrPtr;
@@ -190,7 +189,7 @@ public:
   }
 
 private:
-  void assertObject() {
+  void assertObject() const {
     if (mType != Type::Object) {
       throw std::runtime_error{"Current json type is not Type::Object"};
     }
@@ -207,8 +206,6 @@ private:
       break;
     }
   }
-  template <typename T> friend class str_iter;
-  template <typename T> friend class obj_iter;
 
   Type mType{Type::Null};
   union {
@@ -216,55 +213,6 @@ private:
     string_t *mStrPtr;
     object_t *mObjectPtr;
   };
-};
-
-// Typedefs
-typedef JsonT<char> Json;
-typedef JsonT<char16_t> WJson;
-typedef JsonT<char32_t> QJson;
-
-template <typename JsonT = Json> class str_iter {
-public:
-  explicit str_iter(const JsonT &js) : mRef{js} {
-    if (mRef.type() != Type::String) {
-      throw std::runtime_error{"str_iter is supported only for json strings"};
-    }
-  }
-  typename JsonT::string_t::const_iterator begin() const {
-    return mRef.mStrPtr->cbegin();
-  }
-
-  typename JsonT::string_t::const_iterator end() const {
-    return mRef.mStrPtr->cend();
-  }
-
-private:
-  const JsonT &mRef;
-};
-
-template <typename JsonT = Json> class obj_iter {
-public:
-  explicit obj_iter(const JsonT &js) : mRef{js} {
-    if (mRef.type() != Type::Object) {
-      throw std::runtime_error{"obj_iter is supported only for json objects"};
-    }
-  }
-  typename JsonT::object_t::const_iterator begin() const {
-    return mRef.mObjectPtr->cbegin();
-  }
-
-  typename JsonT::object_t::const_iterator end() const {
-    return mRef.mObjectPtr->cend();
-  }
-
-  typename JsonT::object_t::iterator begin() {
-    return mRef.mObjectPtr->begin();
-  }
-
-  typename JsonT::object_t::iterator end() { return mRef.mObjectPtr->end(); }
-
-private:
-  const JsonT &mRef;
 };
 
 } // namespace json

@@ -22,6 +22,7 @@ void testJsonStrMoveCstr() {
   assert(j.type() == json::Type::String);
 }
 
+/*
 void testJsonConstStringIterator() {
   const json::Json j1{"test"};
   json::str_iter<json::Json> iter(j1);
@@ -31,6 +32,7 @@ void testJsonConstStringIterator() {
   json::log << std::endl;
   assert(j1 == "test");
 }
+*/
 
 void testJsonStringOstreamInsertion() {
   json::Json j{"test"};
@@ -44,6 +46,6 @@ int main() {
   testDefaultCstr();
   testJsonStrCopyCstr();
   testJsonStrMoveCstr();
-  testJsonConstStringIterator();
+  // testJsonConstStringIterator();
   testJsonStringOstreamInsertion();
 }
