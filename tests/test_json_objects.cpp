@@ -7,10 +7,27 @@
 
 void testJsonObjectCstr() {
   json::Json j{{"key1", "value1"}, {"key2", "value2"}};
-  assert(j.type() == json::Type::Object);
+  assert(j.type() == json::Type::object);
   json::log << j << std::endl;
 }
 
+void testJsonObjectKeys() {
+  json::Json j{{"key1", "value1"}, {"key2", "value2"}};
+  auto keys = j.keys();
+  json::print_list(keys);
+}
+
+void testJsonObjectValues() {
+  json::Json j{{"key1", "value1"}, {"key2", "value2"}};
+  auto values = j.values();
+  json::print_list(values);
+}
+
+void testJsonObjectItems() {
+  json::Json j{{"key1", "value1"}, {"key2", "value2"}};
+  auto items = j.items();
+  json::print_list(items);
+}
 /*
 void testJsonObjectfind() {
   json::Json j{{"key1", "value1"}, {"key2", "value2"}};
@@ -62,6 +79,9 @@ void testJsonObjectIterationOnMutatedObject() {
 
 int main() {
   testJsonObjectCstr();
+  testJsonObjectKeys();
+  testJsonObjectValues();
+  testJsonObjectItems();
   /*
 testJsonObjectfind();
 testJsonObjectInsert();

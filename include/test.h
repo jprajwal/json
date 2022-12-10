@@ -21,6 +21,16 @@ public:
     return *this;
   }
 };
+
 Log log{};
+
+template <typename T> void print_list(const T &list) {
+  log << '[';
+  for (const auto &item : list) {
+    log << item << ", ";
+  }
+  log << ']' << std::endl;
+}
+
 } // namespace json
 #endif
