@@ -74,6 +74,10 @@ public: // Json object operations
   friend std::ostream &operator<<(std::ostream &, const object_t &);
   friend std::ostream &operator<<(std::ostream &, const object_t::value_type &);
   bool isObject() const;
+  const object_t::mapped_type &operator[](const object_t::key_type &) const;
+
+private: // Json object private operations
+  void assert_object_type() const;
 
 private:
   struct CoreWrapper {
@@ -89,13 +93,7 @@ private:
 
       Core(string_t str) : m_pstr{make<string_t>(std::move(str))} {}
 
-      // Core(string_t &&str) :
-      // m_pstr{make<string_t>(std::forward<string_t>(str))} {}
-
       Core(object_t obj) : m_pobj{make<object_t>(std::move(obj))} {}
-
-      // Core(object_t &&obj) :
-      // m_pobj{make<object_t>(std::forward<object_t>(obj))} {}
 
       Core &operator=(string_t &&str) {
         constructInner<string_t>(&m_pstr, std::forward<string_t>(str));

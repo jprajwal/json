@@ -10,10 +10,14 @@
 #include <vector>
 
 namespace json {
-std::vector<Json::object_t::key_type> Json::keys() const {
+void Json::assert_object_type() const {
   if (m_variant.type() != Type::object) {
     throw std::runtime_error{"TypeError: not a json object"};
   }
+}
+
+std::vector<Json::object_t::key_type> Json::keys() const {
+  assert_object_type();
   std::vector<Json::object_t::key_type> vec;
   const Json::object_t &obj = m_variant.object();
   std::for_each(obj.cbegin(), obj.cend(),
@@ -22,9 +26,7 @@ std::vector<Json::object_t::key_type> Json::keys() const {
 }
 
 std::vector<Json::object_t::mapped_type> Json::values() const {
-  if (m_variant.type() != Type::object) {
-    throw std::runtime_error{"TypeError: not a json object"};
-  }
+  assert_object_type();
   std::vector<Json::object_t::mapped_type> vec;
   const Json::object_t &obj = m_variant.object();
   std::for_each(obj.cbegin(), obj.cend(),
@@ -33,9 +35,7 @@ std::vector<Json::object_t::mapped_type> Json::values() const {
 }
 
 std::vector<Json::object_t::value_type> Json::items() const {
-  if (m_variant.type() != Type::object) {
-    throw std::runtime_error{"TypeError: not a json object"};
-  }
+  assert_object_type();
   std::vector<Json::object_t::value_type> vec;
   const Json::object_t &obj = m_variant.object();
   std::for_each(obj.cbegin(), obj.cend(),
@@ -64,19 +64,30 @@ std::ostream &operator<<(std::ostream &out,
 }
 
 Json::object_t &&Json::moveObject() {
-  if (m_variant.type() != Type::object) {
-    throw std::runtime_error{"TypeError: not a json object"};
-  }
+  assert_object_type();
   return m_variant.extract_object();
 }
 Json::object_t Json::copyObject() const {
-  if (m_variant.type() != Type::object) {
-    throw std::runtime_error{"TypeError: not a json object"};
-  }
+  assert_object_type();
   return m_variant.object();
 }
 
 bool Json::isObject() const { return (m_variant.type() == Type::object); }
+
+const Json::object_t::mapped_type &
+Json::operator[](const object_t::key_type &key) const {
+
+  assert_object_type();
+
+  const auto &obj = m_variant.object();
+  auto result = obj.find(key);
+
+  if (result == obj.cend()) {
+    throw std::runtime_error{std::string{"KeyError: "} + std::string{key}};
+  }
+
+  return result->second;
+}
 
 } // namespace json
 
