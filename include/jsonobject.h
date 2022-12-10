@@ -4,7 +4,6 @@
 #include "json.h"
 
 #include <algorithm>
-#include <bits/c++config.h>
 #include <iterator>
 #include <stdexcept>
 #include <vector>
@@ -89,6 +88,10 @@ Json::operator[](const object_t::key_type &key) const {
   return result->second;
 }
 
+void Json::update(std::vector<Json::object_t::value_type> pairs) {
+  Json::object_t &obj = m_variant.object();
+  obj.insert(pairs.begin(), pairs.end());
+}
 } // namespace json
 
 #endif

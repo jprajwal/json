@@ -49,6 +49,14 @@ void testJsonStringOstreamInsertion() {
   assert(ss.str() == "test");
 }
 
+void testHeldTypeMutability() {
+  json::Json j;
+  json::log << j << std::endl;
+  json::Json j1{"test"};
+  j = j1;
+  json::log << j << std::endl;
+}
+
 int main() {
   testDefaultCstr();
   testJsonStrCopyCstr();
@@ -56,4 +64,5 @@ int main() {
   testJsonStringIterator();
   testJsonNonStringIterator();
   testJsonStringOstreamInsertion();
+  testHeldTypeMutability();
 }

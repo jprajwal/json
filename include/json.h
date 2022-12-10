@@ -75,6 +75,7 @@ public: // Json object operations
   friend std::ostream &operator<<(std::ostream &, const object_t::value_type &);
   bool isObject() const;
   const object_t::mapped_type &operator[](const object_t::key_type &) const;
+  void update(std::vector<object_t::value_type> pairs);
 
 private: // Json object private operations
   void assert_object_type() const;
@@ -204,10 +205,9 @@ private:
     }
 
     CoreWrapper &operator=(const CoreWrapper &other) {
-      if (m_type != other.m_type) {
-        throw std::runtime_error{"TypeError: Assignment to different type"};
-      }
       deleteCoreInner();
+      m_type = other.m_type;
+
       switch (other.m_type) {
       case Type::string: {
         string_t strcopy = other.str();
@@ -231,10 +231,9 @@ private:
     }
 
     CoreWrapper &operator=(CoreWrapper &&other) {
-      if (m_type != other.m_type) {
-        throw std::runtime_error{"TypeError: Assignment to different type"};
-      }
       deleteCoreInner();
+      m_type = other.m_type;
+
       switch (other.m_type) {
       case Type::string:
         m_core = other.extract_str();

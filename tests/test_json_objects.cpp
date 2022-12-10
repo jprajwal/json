@@ -5,6 +5,7 @@
 #include <cassert>
 #include <iostream>
 #include <stdexcept>
+#include <vector>
 
 void testCstr() {
   json::Json j{{"key1", "value1"}, {"key2", "value2"}};
@@ -53,6 +54,40 @@ void testNestedObjectCreate() {
   json::log << js["k2"]["k22"] << std::endl;
 }
 
+void testInsert() {
+  json::Json j{{"key1", "value1"}, {"key2", "value2"}};
+  j.update({{"key3", "value3"}, {"key4", "value4"}});
+  json::log << j << std::endl;
+  assert(j["key3"].copyString() == "value3");
+  assert(j["key4"].copyString() == "value4");
+}
+
+void testInsert2() {
+  json::Json j{{"key1", "value1"}, {"key2", "value2"}};
+  std::string k3 = "key3";
+  std::string v3 = "value3";
+  std::string k4 = "key4";
+  std::string v4 = "value4";
+  j.update({{k3, v3}, {k4, v4}});
+  json::log << j << std::endl;
+  assert(j["key3"].copyString() == "value3");
+  assert(j["key4"].copyString() == "value4");
+}
+
+void testInsert3() {
+  json::Json j{{"key1", "value1"}, {"key2", "value2"}};
+  std::vector<json::Json::object_t::value_type> pairs;
+  for (int i = 3; i < 8; ++i) {
+    std::string key = "key" + std::to_string(i);
+    std::string value = "value" + std::to_string(i);
+    pairs.push_back({key, value});
+  }
+  j.update(pairs);
+  json::log << j << std::endl;
+  assert(j["key3"].copyString() == "value3");
+  assert(j["key4"].copyString() == "value4");
+}
+
 int main() {
   testCstr();
   testKeys();
@@ -61,4 +96,7 @@ int main() {
   testIndexOperator();
   testIndexOperatorKeyError();
   testNestedObjectCreate();
+  testInsert();
+  testInsert2();
+  testInsert3();
 }
