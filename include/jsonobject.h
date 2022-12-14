@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <iterator>
 #include <stdexcept>
+#include <utility>
 #include <vector>
 
 namespace json {
@@ -62,9 +63,9 @@ std::ostream &operator<<(std::ostream &out,
   return out;
 }
 
-Json::object_t &&Json::moveObject() {
+Json::object_t Json::moveObject() {
   assert_object_type();
-  return m_variant.extract_object();
+  return std::forward<object_t>(m_variant.extract_object());
 }
 Json::object_t Json::copyObject() const {
   assert_object_type();
@@ -89,8 +90,47 @@ Json::operator[](const object_t::key_type &key) const {
 }
 
 void Json::update(std::vector<Json::object_t::value_type> pairs) {
-  Json::object_t &obj = m_variant.object();
-  obj.insert(pairs.begin(), pairs.end());
+  assert_object_type();
+
+  for (auto &pair : pairs) {
+    set(std::move(pair));
+  }
+}
+
+void Json::set(object_t::value_type item) {
+  assert_object_type();
+
+  object_t &obj = m_variant.object();
+  auto result = obj.find(item.first);
+
+  if (result == obj.cend()) {
+    obj.insert(std::move(item));
+    return;
+  }
+
+  result->second = std::move(item.second);
+}
+
+Json Json::pop(const object_t::key_type &key) {
+  assert_object_type();
+
+  auto &obj = m_variant.object();
+  auto result = obj.find(key);
+
+  if (result == obj.cend()) {
+    throw std::runtime_error{std::string{"KeyError: "} + std::string{key}};
+  }
+
+  Json value = std::move(result->second);
+
+  auto count = obj.erase(key);
+
+  if (count != 1) {
+    throw std::runtime_error{
+        std::string{"InternalError occurred while removing item"}};
+  }
+
+  return value;
 }
 } // namespace json
 

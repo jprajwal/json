@@ -88,6 +88,31 @@ void testInsert3() {
   assert(j["key4"].copyString() == "value4");
 }
 
+void testUsage() {
+  using json::Json;
+  json::log << "test..." << std::endl;
+  Json obj = {{"key1", "value1"}, {"key2", "value2"}};
+  json::log << obj << std::endl;
+  Json str = obj.pop("key1");
+  json::log << str << std::endl;
+  json::log << obj["key2"] << std::endl;
+
+  obj.update({{"key3", "value3"}, {"key4", "value4"}});
+  json::log << obj << std::endl;
+
+  Json key4 = obj.pop("key4");
+  key4 = {{"key41", "value41"}, {"key42", "value42"}};
+  json::log << key4 << std::endl;
+
+  obj.set({"key4", key4});
+  json::log << obj << std::endl;
+
+  key4 = obj.pop("key4");
+  key4.set({"key43", "value43"});
+  obj.set({"key4", std::move(key4)});
+  json::log << obj << std::endl;
+}
+
 int main() {
   testCstr();
   testKeys();
@@ -99,4 +124,5 @@ int main() {
   testInsert();
   testInsert2();
   testInsert3();
+  testUsage();
 }

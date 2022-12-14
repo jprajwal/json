@@ -69,13 +69,15 @@ public: // Json object operations
   std::vector<object_t::key_type> keys() const;
   std::vector<object_t::mapped_type> values() const;
   std::vector<object_t::value_type> items() const;
-  object_t &&moveObject();
+  object_t moveObject();
   object_t copyObject() const;
   friend std::ostream &operator<<(std::ostream &, const object_t &);
   friend std::ostream &operator<<(std::ostream &, const object_t::value_type &);
   bool isObject() const;
   const object_t::mapped_type &operator[](const object_t::key_type &) const;
   void update(std::vector<object_t::value_type> pairs);
+  void set(object_t::value_type item);
+  Json pop(const object_t::key_type &key);
 
 private: // Json object private operations
   void assert_object_type() const;
@@ -117,11 +119,11 @@ private:
 
       object_t &object() const { return *m_pobj; }
 
-      string_t &&extract_str() { return std::move(*m_pstr); }
+      string_t extract_str() { return std::move(*m_pstr); }
 
-      null_t &&extract_null() { return std::move(*m_pnull); }
+      null_t extract_null() { return std::move(*m_pnull); }
 
-      object_t &&extract_object() { return std::move(*m_pobj); }
+      object_t extract_object() { return std::move(*m_pobj); }
 
       ~Core() {}
 
@@ -257,11 +259,17 @@ private:
 
     object_t &object() const { return m_core.object(); }
 
-    string_t &&extract_str() { return m_core.extract_str(); }
+    string_t extract_str() {
+      return std::forward<string_t>(m_core.extract_str());
+    }
 
-    null_t &&extract_null() { return m_core.extract_null(); }
+    null_t extract_null() {
+      return std::forward<null_t>(m_core.extract_null());
+    }
 
-    object_t &&extract_object() { return m_core.extract_object(); }
+    object_t extract_object() {
+      return std::forward<object_t>(m_core.extract_object());
+    }
 
   private:
     void deleteCoreInner() {
