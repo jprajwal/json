@@ -123,6 +123,21 @@ Json Json::pop(const object_t::key_type &key) {
 
   return value;
 }
+
+bool Json::objectHasKey(const object_t::key_type &key) const {
+  assert_object_type();
+  const auto &obj = m_variant.object();
+  return obj.find(key) != obj.cend();
+}
+
+bool Json::objectHasValue(const object_t::mapped_type &value) const {
+  assert_object_type();
+  const auto &obj = m_variant.object();
+  auto result = std::find_if(
+      obj.cbegin(), obj.cend(),
+      [&](const object_t::value_type &item) { return item.second == value; });
+  return result != obj.cend();
+}
 } // namespace json
 
 #endif

@@ -50,6 +50,8 @@ public: // Constructors
 public: // Json common operations
   Type type() const { return m_variant.type(); }
   friend std::ostream &operator<<(std::ostream &out, const Json &jsn);
+  bool operator==(const Json &) const;
+  bool operator!=(const Json &) const;
 
 public: // Json string operations
   std::vector<string_t::value_type> chars() const;
@@ -88,6 +90,8 @@ public: // Json object operations
   void update(std::vector<object_t::value_type> pairs);
   void set(object_t::value_type item);
   Json pop(const object_t::key_type &key);
+  bool objectHasKey(const object_t::key_type &key) const;
+  bool objectHasValue(const object_t::mapped_type &value) const;
 
   object_t toObject() const & {
     assert_object_type();

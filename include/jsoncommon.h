@@ -25,6 +25,28 @@ std::ostream &operator<<(std::ostream &out, const Json &jsn) {
   }
   return out;
 }
+
+bool Json::operator==(const Json &other) const {
+  if (m_variant.type() != other.type()) {
+    return false;
+  }
+
+  switch (other.m_variant.type()) {
+  case Type::string:
+    return m_variant.str() == other.m_variant.str();
+  case Type::object:
+    return m_variant.object() == other.m_variant.object();
+  case Type::integer:
+    return m_variant.integer() == other.m_variant.integer();
+  case Type::null:
+    return true;
+  default:
+    return false;
+  }
+}
+
+bool Json::operator!=(const Json &other) const { return !(*this == other); }
+
 } // namespace json
 
 #endif
