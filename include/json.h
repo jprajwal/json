@@ -41,23 +41,7 @@ public: // Constructors
 
 public: // Json common operations
   Type type() const { return m_variant.type(); }
-
-  friend std::ostream &operator<<(std::ostream &out, const Json &jsn) {
-    switch (jsn.m_variant.type()) {
-    case Type::string:
-      out << jsn.m_variant.str();
-      break;
-    case Type::null:
-      out << jsn.m_variant.null();
-      break;
-    case Type::object:
-      out << jsn.m_variant.object();
-      break;
-    default:
-      out << "Not Implemented";
-    }
-    return out;
-  }
+  friend std::ostream &operator<<(std::ostream &out, const Json &jsn);
 
 public: // Json string operations
   std::vector<string_t::value_type> chars() const;
@@ -301,5 +285,6 @@ private:
 
 #endif
 
+#include "jsoncommon.h"
 #include "jsonobject.h"
 #include "jsonstring.h"
