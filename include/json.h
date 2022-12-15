@@ -81,6 +81,16 @@ public: // Json object operations
   void set(object_t::value_type item);
   Json pop(const object_t::key_type &key);
 
+  object_t toObject() const & {
+    assert_object_type();
+    return m_variant.object();
+  }
+
+  object_t toObject() && {
+    assert_object_type();
+    return m_variant.extract_object();
+  }
+
   operator object_t() const & {
     assert_object_type();
     return m_variant.object();
