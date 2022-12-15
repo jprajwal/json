@@ -2,7 +2,6 @@
 #define JSON_JSON_H
 
 #include "null.h"
-#include "test.h"
 
 #include <initializer_list>
 #include <iostream>
@@ -79,12 +78,10 @@ public: // Json object operations
   Json pop(const object_t::key_type &key);
   operator object_t() const & {
     assert_object_type();
-    log << "Casting using copy operation" << std::endl;
     return m_variant.object();
   }
   operator object_t() && {
     assert_object_type();
-    log << "Casting using move operation" << std::endl;
     return m_variant.extract_object();
   }
 
