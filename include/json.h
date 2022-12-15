@@ -3,6 +3,7 @@
 
 #include "null.h"
 
+#include <cstdint>
 #include <initializer_list>
 #include <iostream>
 #include <iterator>
@@ -19,6 +20,7 @@ enum class Type {
   null,
   string,
   object,
+  integer,
 };
 
 class Json {
@@ -26,18 +28,24 @@ public:
   using null_t = Null;
   using string_t = std::string;
   using object_t = std::map<string_t, Json>;
+  using int_t = std::int64_t;
 
 public: // Constructors
   Json() : m_variant{} {}
 
+  // Json string ctors
   Json(const char *str) : m_variant{str} {}
-
   Json(string_t &str) : m_variant{str} {}
-
   Json(string_t &&str) : m_variant{std::forward<string_t>(str)} {}
 
+  // Json object ctors
   Json(std::initializer_list<object_t::value_type> pairs)
       : m_variant{object_t{pairs}} {}
+  Json(const object_t &obj) : m_variant{obj} {}
+  Json(object_t &&obj) : m_variant{std::forward<object_t>(obj)} {}
+
+  // Json integer ctors
+  explicit Json(int_t n) : m_variant{n} {}
 
 public: // Json common operations
   Type type() const { return m_variant.type(); }
@@ -104,6 +112,25 @@ public: // Json object operations
 private: // Json object private operations
   void assert_object_type() const;
 
+public: // Json integer operations
+  bool isInteger() const { return (m_variant.type() == Type::integer); }
+  int_t toInteger() {
+    assert_integer_type();
+    return m_variant.integer();
+  }
+
+  explicit operator int_t() {
+    assert_integer_type();
+    return m_variant.integer();
+  }
+
+private: // Json integer private operations
+  void assert_integer_type() const {
+    if (!isInteger()) {
+      throw std::runtime_error{"TypeError: not a json integer"};
+    }
+  }
+
 private:
   struct CoreWrapper {
   private:
@@ -111,6 +138,7 @@ private:
       std::unique_ptr<null_t> m_pnull;
       std::unique_ptr<string_t> m_pstr;
       std::unique_ptr<object_t> m_pobj;
+      std::unique_ptr<int_t> m_pint;
 
       Core() : m_pnull{Default<null_t>()} {}
 
@@ -119,6 +147,8 @@ private:
       Core(string_t str) : m_pstr{make<string_t>(std::move(str))} {}
 
       Core(object_t obj) : m_pobj{make<object_t>(std::move(obj))} {}
+
+      Core(int_t n) : m_pint{make<int_t>(n)} {}
 
       Core &operator=(string_t &&str) {
         constructInner<string_t>(&m_pstr, std::forward<string_t>(str));
@@ -135,11 +165,18 @@ private:
         return *this;
       }
 
+      Core &operator=(int_t obj) {
+        constructInner<int_t>(&m_pint, obj);
+        return *this;
+      }
+
       string_t &str() const { return *m_pstr; }
 
       null_t &null() const { return *m_pnull; }
 
       object_t &object() const { return *m_pobj; }
+
+      int_t integer() const { return *m_pint; }
 
       string_t extract_str() { return std::move(*m_pstr); }
 
@@ -154,6 +191,8 @@ private:
       void delete_null() { m_pnull.~unique_ptr(); }
 
       void delete_object() { m_pobj.~unique_ptr(); }
+
+      void delete_integer() { m_pint.~unique_ptr(); }
 
     private:
       template <typename T> std::unique_ptr<T> Default() {
@@ -185,10 +224,12 @@ private:
     CoreWrapper(string_t &&str)
         : m_type{Type::string}, m_core{std::forward<string_t>(str)} {}
 
-    CoreWrapper(object_t &obj) : m_type{Type::object}, m_core{obj} {}
+    CoreWrapper(const object_t &obj) : m_type{Type::object}, m_core{obj} {}
 
     CoreWrapper(object_t &&obj)
         : m_type{Type::object}, m_core{std::forward<object_t>(obj)} {}
+
+    CoreWrapper(int_t n) : m_type{Type::integer}, m_core{n} {}
 
     CoreWrapper(const CoreWrapper &other) : m_type{other.m_type} {
       switch (other.m_type) {
@@ -207,6 +248,9 @@ private:
         m_core = std::move(objcopy);
         break;
       }
+      case Type::integer:
+        m_core = other.integer();
+        break;
       default:
         break;
       }
@@ -222,6 +266,9 @@ private:
         break;
       case Type::object:
         m_core = other.extract_object();
+        break;
+      case Type::integer:
+        m_core = other.integer();
         break;
       default:
         break;
@@ -248,6 +295,9 @@ private:
         m_core = std::move(objcopy);
         break;
       }
+      case Type::integer:
+        m_core = other.integer();
+        break;
       default:
         break;
       }
@@ -268,6 +318,9 @@ private:
       case Type::object:
         m_core = other.extract_object();
         break;
+      case Type::integer:
+        m_core = other.integer();
+        break;
       default:
         break;
       }
@@ -280,6 +333,8 @@ private:
     null_t &null() const { return m_core.null(); }
 
     object_t &object() const { return m_core.object(); }
+
+    int_t integer() const { return m_core.integer(); }
 
     string_t extract_str() {
       return std::forward<string_t>(m_core.extract_str());
@@ -304,6 +359,9 @@ private:
         break;
       case Type::object:
         m_core.delete_object();
+      case Type::integer:
+        m_core.delete_integer();
+        break;
       default:
         break;
       }

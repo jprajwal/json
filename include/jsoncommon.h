@@ -17,6 +17,9 @@ std::ostream &operator<<(std::ostream &out, const Json &jsn) {
   case Type::object:
     out << jsn.m_variant.object();
     break;
+  case Type::integer:
+    out << jsn.m_variant.integer();
+    break;
   default:
     out << "Not Implemented";
   }
