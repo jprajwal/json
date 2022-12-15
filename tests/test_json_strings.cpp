@@ -28,7 +28,8 @@ void testJsonStringIterator() {
     json::log << ch << ' ';
   }
   json::log << std::endl;
-  assert(j1.copyString() == "test");
+  auto chars = j1.chars();
+  assert(std::string(chars.cbegin(), chars.cend()) == "test");
 }
 
 void testJsonNonStringIterator() {

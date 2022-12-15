@@ -45,9 +45,29 @@ public: // Json common operations
 
 public: // Json string operations
   std::vector<string_t::value_type> chars() const;
-  string_t &&moveString();
-  string_t copyString() const;
   bool isString() const;
+  string_t toString() const & {
+    assert_string_type();
+    return m_variant.str();
+  }
+
+  string_t toString() && {
+    assert_string_type();
+    return m_variant.extract_str();
+  }
+
+  operator string_t() const & {
+    assert_string_type();
+    return m_variant.str();
+  }
+
+  operator string_t() && {
+    assert_string_type();
+    return m_variant.extract_str();
+  }
+
+private: // Json string private operations
+  void assert_string_type() const;
 
 public: // Json object operations
   std::vector<object_t::key_type> keys() const;
@@ -60,10 +80,12 @@ public: // Json object operations
   void update(std::vector<object_t::value_type> pairs);
   void set(object_t::value_type item);
   Json pop(const object_t::key_type &key);
+
   operator object_t() const & {
     assert_object_type();
     return m_variant.object();
   }
+
   operator object_t() && {
     assert_object_type();
     return m_variant.extract_object();

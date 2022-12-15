@@ -35,7 +35,7 @@ void testItems() {
 void testIndexOperator() {
   json::Json j{{"key1", "value1"}, {"key2", "value2"}};
   for (const auto &item : j.items()) {
-    assert(item.second.copyString() == j[item.first].copyString());
+    assert(item.second.toString() == j[item.first].toString());
   }
 }
 
@@ -59,8 +59,8 @@ void testInsert() {
   json::Json j{{"key1", "value1"}, {"key2", "value2"}};
   j.update({{"key3", "value3"}, {"key4", "value4"}});
   json::log << j << std::endl;
-  assert(j["key3"].copyString() == "value3");
-  assert(j["key4"].copyString() == "value4");
+  assert(j["key3"].toString() == "value3");
+  assert(j["key4"].toString() == "value4");
 }
 
 void testInsert2() {
@@ -71,8 +71,8 @@ void testInsert2() {
   std::string v4 = "value4";
   j.update({{k3, v3}, {k4, v4}});
   json::log << j << std::endl;
-  assert(j["key3"].copyString() == "value3");
-  assert(j["key4"].copyString() == "value4");
+  assert(j["key3"].toString() == "value3");
+  assert(j["key4"].toString() == "value4");
 }
 
 void testInsert3() {
@@ -85,8 +85,8 @@ void testInsert3() {
   }
   j.update(pairs);
   json::log << j << std::endl;
-  assert(j["key3"].copyString() == "value3");
-  assert(j["key4"].copyString() == "value4");
+  assert(j["key3"].toString() == "value3");
+  assert(j["key4"].toString() == "value4");
 }
 
 void testUsage() {
