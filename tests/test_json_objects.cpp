@@ -2,6 +2,7 @@
 #include "json.h"
 #include "test.h"
 
+#include <algorithm>
 #include <cassert>
 #include <iostream>
 #include <stdexcept>
@@ -113,6 +114,22 @@ void testUsage() {
   json::log << obj << std::endl;
 }
 
+void testTypeCastingByCopy() {
+  using json::Json;
+  Json obj = {{"key1", "value1"}, {"key2", "value2"}};
+  Json::object_t map = obj;
+  auto keys = obj.keys();
+  assert(std::find(keys.cbegin(), keys.cend(), "key1") != keys.cend());
+}
+
+void testTypeCastingByMove() {
+  using json::Json;
+  Json obj = {{"key1", "value1"}, {"key2", "value2"}};
+  Json::object_t map = std::move(obj);
+  auto keys = obj.keys();
+  assert(std::find(keys.cbegin(), keys.cend(), "key1") == keys.cend());
+}
+
 int main() {
   testCstr();
   testKeys();
@@ -125,4 +142,6 @@ int main() {
   testInsert2();
   testInsert3();
   testUsage();
+  testTypeCastingByCopy();
+  testTypeCastingByMove();
 }

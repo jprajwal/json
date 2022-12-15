@@ -63,15 +63,6 @@ std::ostream &operator<<(std::ostream &out,
   return out;
 }
 
-Json::object_t Json::moveObject() {
-  assert_object_type();
-  return std::forward<object_t>(m_variant.extract_object());
-}
-Json::object_t Json::copyObject() const {
-  assert_object_type();
-  return m_variant.object();
-}
-
 bool Json::isObject() const { return (m_variant.type() == Type::object); }
 
 const Json::object_t::mapped_type &

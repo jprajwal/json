@@ -2,6 +2,7 @@
 #define JSON_JSON_H
 
 #include "null.h"
+#include "test.h"
 
 #include <initializer_list>
 #include <iostream>
@@ -69,8 +70,6 @@ public: // Json object operations
   std::vector<object_t::key_type> keys() const;
   std::vector<object_t::mapped_type> values() const;
   std::vector<object_t::value_type> items() const;
-  object_t moveObject();
-  object_t copyObject() const;
   friend std::ostream &operator<<(std::ostream &, const object_t &);
   friend std::ostream &operator<<(std::ostream &, const object_t::value_type &);
   bool isObject() const;
@@ -78,6 +77,16 @@ public: // Json object operations
   void update(std::vector<object_t::value_type> pairs);
   void set(object_t::value_type item);
   Json pop(const object_t::key_type &key);
+  operator object_t() const & {
+    assert_object_type();
+    log << "Casting using copy operation" << std::endl;
+    return m_variant.object();
+  }
+  operator object_t() && {
+    assert_object_type();
+    log << "Casting using move operation" << std::endl;
+    return m_variant.extract_object();
+  }
 
 private: // Json object private operations
   void assert_object_type() const;
