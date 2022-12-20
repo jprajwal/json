@@ -45,7 +45,7 @@ public: // Constructors
   Json(object_t &&obj) : m_variant{std::forward<object_t>(obj)} {}
 
   // Json integer ctors
-  explicit Json(int_t n) : m_variant{n} {}
+  Json(int_t n) : m_variant{n} {}
 
 public: // Json common operations
   Type type() const { return m_variant.type(); }
@@ -86,12 +86,12 @@ public: // Json object operations
   friend std::ostream &operator<<(std::ostream &, const object_t &);
   friend std::ostream &operator<<(std::ostream &, const object_t::value_type &);
   bool isObject() const;
-  const object_t::mapped_type &operator[](const object_t::key_type &) const;
-  void update(std::vector<object_t::value_type> pairs);
-  void set(object_t::value_type item);
-  Json pop(const object_t::key_type &key);
-  bool objectHasKey(const object_t::key_type &key) const;
-  bool objectHasValue(const object_t::mapped_type &value) const;
+  object_t::mapped_type &operator[](const object_t::key_type &);
+  Json &update(std::vector<object_t::value_type> pairs);
+  Json &set(object_t::value_type item);
+  object_t::mapped_type pop(const object_t::key_type &key);
+  bool hasKey(const object_t::key_type &key) const;
+  bool hasValue(const object_t::mapped_type &value) const;
 
   object_t toObject() const & {
     assert_object_type();

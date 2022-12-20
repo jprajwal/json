@@ -65,30 +65,22 @@ std::ostream &operator<<(std::ostream &out,
 
 bool Json::isObject() const { return (m_variant.type() == Type::object); }
 
-const Json::object_t::mapped_type &
-Json::operator[](const object_t::key_type &key) const {
-
+Json::object_t::mapped_type &Json::operator[](const object_t::key_type &key) {
   assert_object_type();
-
-  const auto &obj = m_variant.object();
-  auto result = obj.find(key);
-
-  if (result == obj.cend()) {
-    throw std::runtime_error{std::string{"KeyError: "} + std::string{key}};
-  }
-
-  return result->second;
+  auto &obj = m_variant.object();
+  return obj[key];
 }
 
-void Json::update(std::vector<Json::object_t::value_type> pairs) {
+Json &Json::update(std::vector<Json::object_t::value_type> pairs) {
   assert_object_type();
 
   for (auto &pair : pairs) {
     set(std::move(pair));
   }
+  return *this;
 }
 
-void Json::set(object_t::value_type item) {
+Json &Json::set(object_t::value_type item) {
   assert_object_type();
 
   object_t &obj = m_variant.object();
@@ -96,13 +88,14 @@ void Json::set(object_t::value_type item) {
 
   if (result == obj.cend()) {
     obj.insert(std::move(item));
-    return;
+    return *this;
   }
 
   result->second = std::move(item.second);
+  return *this;
 }
 
-Json Json::pop(const object_t::key_type &key) {
+Json::object_t::mapped_type Json::pop(const object_t::key_type &key) {
   assert_object_type();
 
   auto &obj = m_variant.object();
@@ -124,13 +117,13 @@ Json Json::pop(const object_t::key_type &key) {
   return value;
 }
 
-bool Json::objectHasKey(const object_t::key_type &key) const {
+bool Json::hasKey(const object_t::key_type &key) const {
   assert_object_type();
   const auto &obj = m_variant.object();
   return obj.find(key) != obj.cend();
 }
 
-bool Json::objectHasValue(const object_t::mapped_type &value) const {
+bool Json::hasValue(const object_t::mapped_type &value) const {
   assert_object_type();
   const auto &obj = m_variant.object();
   auto result = std::find_if(

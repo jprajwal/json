@@ -91,27 +91,19 @@ void testInsert3() {
 
 void testUsage() {
   using json::Json;
-  json::log << "test..." << std::endl;
-  Json obj = {{"key1", "value1"}, {"key2", "value2"}};
-  json::log << obj << std::endl;
-  Json str = obj.pop("key1");
-  json::log << str << std::endl;
-  json::log << obj["key2"] << std::endl;
+  Json person = Json::object_t{};
 
-  obj.update({{"key3", "value3"}, {"key4", "value4"}});
-  json::log << obj << std::endl;
+  person["name"] = "John Doe";
+  person["age"] = 27;
+  person["relations"] = Json::object_t();
+  person["relations"]["father"] = "John Doe's father";
+  person["relations"]["mother"] = "John Doe's mother";
+  person["experience"] = {{"company1", "1 month"}, {"company2", "6 years"}};
 
-  Json key4 = obj.pop("key4");
-  key4 = {{"key41", "value41"}, {"key42", "value42"}};
-  json::log << key4 << std::endl;
-
-  obj.set({"key4", key4});
-  json::log << obj << std::endl;
-
-  key4 = obj.pop("key4");
-  key4.set({"key43", "value43"});
-  obj.set({"key4", std::move(key4)});
-  json::log << obj << std::endl;
+  auto experience = person.pop("experience");
+  experience.set({"company3", "0 years"});
+  person.set({"experience", std::move(experience)});
+  json::log << person << std::endl;
 }
 
 void testTypeCastingByCopy() {
