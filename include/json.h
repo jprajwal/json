@@ -80,9 +80,12 @@ private: // Json string private operations
   void assert_string_type() const;
 
 public: // Json object operations
-  std::vector<object_t::key_type> keys() const;
-  std::vector<object_t::mapped_type> values() const;
-  std::vector<object_t::value_type> items() const;
+  class key_iterator;
+  class value_iterator;
+  class item_iterator;
+  key_iterator keys() const;
+  value_iterator values() const;
+  item_iterator items() const;
   friend std::ostream &operator<<(std::ostream &, const object_t &);
   friend std::ostream &operator<<(std::ostream &, const object_t::value_type &);
   bool isObject() const;
@@ -198,6 +201,8 @@ private:
 
       void delete_integer() { m_pint.~unique_ptr(); }
 
+      void delete_default() { delete_null(); }
+
     private:
       template <typename T> std::unique_ptr<T> Default() {
         return std::make_unique<T>();
@@ -236,6 +241,7 @@ private:
     CoreWrapper(int_t n) : m_type{Type::integer}, m_core{n} {}
 
     CoreWrapper(const CoreWrapper &other) : m_type{other.m_type} {
+      m_core.delete_default();
       switch (other.m_type) {
       case Type::string: {
         string_t strcopy = other.str();
@@ -261,6 +267,7 @@ private:
     }
 
     CoreWrapper(CoreWrapper &&other) noexcept : m_type{other.m_type} {
+      m_core.delete_default();
       switch (other.m_type) {
       case Type::string:
         m_core = other.extract_str();
@@ -278,6 +285,8 @@ private:
         break;
       }
     }
+
+    ~CoreWrapper() { deleteCoreInner(); }
 
     CoreWrapper &operator=(const CoreWrapper &other) {
       deleteCoreInner();
@@ -330,6 +339,7 @@ private:
       }
       return *this;
     }
+
     Type type() const { return m_type; }
 
     string_t &str() const { return m_core.str(); }

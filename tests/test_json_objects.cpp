@@ -10,26 +10,35 @@
 
 void testCstr() {
   json::Json j{{"key1", "value1"}, {"key2", "value2"}};
+  json::Json j2{j};
   assert(j.type() == json::Type::object);
-  json::log << j << std::endl;
+  assert(j2.type() == json::Type::object);
 }
 
 void testKeys() {
   json::Json j{{"key1", "value1"}, {"key2", "value2"}};
   auto keys = j.keys();
   json::print_list(keys);
+  assert(json::is_same_list(
+      keys, std::vector<json::Json::object_t::key_type>{"key1", "key2"}));
 }
 
 void testValues() {
   json::Json j{{"key1", "value1"}, {"key2", "value2"}};
   auto values = j.values();
   json::print_list(values);
+  assert(json::is_same_list(
+      values,
+      std::vector<json::Json::object_t::mapped_type>{"value1", "value2"}));
 }
 
 void testItems() {
   json::Json j{{"key1", "value1"}, {"key2", "value2"}};
   auto items = j.items();
   json::print_list(items);
+  assert(
+      json::is_same_list(items, std::vector<json::Json::object_t::value_type>{
+                                    {"key1", "value1"}, {"key2", "value2"}}));
 }
 
 void testIndexOperator() {
@@ -55,7 +64,7 @@ void testNestedObjectCreate() {
   json::log << js["k2"]["k22"] << std::endl;
 }
 
-void testInsert() {
+void testUpdate1() {
   json::Json j{{"key1", "value1"}, {"key2", "value2"}};
   j.update({{"key3", "value3"}, {"key4", "value4"}});
   json::log << j << std::endl;
@@ -63,7 +72,7 @@ void testInsert() {
   assert(j["key4"].toString() == "value4");
 }
 
-void testInsert2() {
+void testUpdate2() {
   json::Json j{{"key1", "value1"}, {"key2", "value2"}};
   std::string k3 = "key3";
   std::string v3 = "value3";
@@ -75,7 +84,7 @@ void testInsert2() {
   assert(j["key4"].toString() == "value4");
 }
 
-void testInsert3() {
+void testUpdate3() {
   json::Json j{{"key1", "value1"}, {"key2", "value2"}};
   std::vector<json::Json::object_t::value_type> pairs;
   for (int i = 3; i < 8; ++i) {
@@ -104,6 +113,7 @@ void testUsage() {
   experience.set({"company3", "0 years"});
   person.set({"experience", std::move(experience)});
   json::log << person << std::endl;
+  assert(person["experience"]["company3"].toString() == "0 years");
 }
 
 void testTypeCastingByCopy() {
@@ -111,7 +121,7 @@ void testTypeCastingByCopy() {
   Json obj = {{"key1", "value1"}, {"key2", "value2"}};
   Json::object_t map = obj;
   auto keys = obj.keys();
-  assert(std::find(keys.cbegin(), keys.cend(), "key1") != keys.cend());
+  assert(std::find(keys.begin(), keys.end(), "key1") != keys.end());
 }
 
 void testTypeCastingByMove() {
@@ -119,7 +129,7 @@ void testTypeCastingByMove() {
   Json obj = {{"key1", "value1"}, {"key2", "value2"}};
   Json::object_t map = std::move(obj);
   auto keys = obj.keys();
-  assert(std::find(keys.cbegin(), keys.cend(), "key1") == keys.cend());
+  assert(std::find(keys.begin(), keys.end(), "key1") == keys.end());
 }
 
 int main() {
@@ -130,9 +140,9 @@ int main() {
   testIndexOperator();
   testIndexOperatorKeyError();
   testNestedObjectCreate();
-  testInsert();
-  testInsert2();
-  testInsert3();
+  testUpdate1();
+  testUpdate2();
+  testUpdate3();
   testUsage();
   testTypeCastingByCopy();
   testTypeCastingByMove();

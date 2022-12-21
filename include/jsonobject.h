@@ -4,6 +4,7 @@
 #include "json.h"
 
 #include <algorithm>
+#include <cstddef>
 #include <iterator>
 #include <stdexcept>
 #include <utility>
@@ -16,31 +17,185 @@ void Json::assert_object_type() const {
   }
 }
 
-std::vector<Json::object_t::key_type> Json::keys() const {
+class Json::key_iterator {
+public:
+  using difference_type = std::ptrdiff_t;
+  using value_type = const object_t::key_type &;
+  using pointer = void;
+  using reference = void;
+  using iterator_category = std::input_iterator_tag;
+
+  key_iterator(const Json &jsn) : m_ref{jsn}, m_cur{} {}
+
+  key_iterator begin() const {
+    key_iterator iter{m_ref};
+    iter.set_begin();
+    return iter;
+  }
+
+  key_iterator end() const {
+    key_iterator iter{m_ref};
+    iter.set_end();
+    return iter;
+  }
+
+  bool operator==(const key_iterator other) const {
+    return this->m_cur == other.m_cur;
+  }
+
+  bool operator!=(const key_iterator other) const { return !(*this == other); }
+
+  key_iterator &operator++() {
+    auto last = end();
+    if (*this == last) {
+      return *this;
+    }
+
+    ++m_cur;
+    return *this;
+  }
+
+  key_iterator operator++(int) {
+    auto copy = *this;
+    ++(*this);
+    return copy;
+  }
+
+  value_type operator*() const { return m_cur->first; }
+
+private:
+  void set_begin() { m_cur = m_ref.m_variant.object().begin(); }
+  void set_end() { m_cur = m_ref.m_variant.object().end(); }
+
+private:
+  const Json &m_ref;
+  object_t::iterator m_cur;
+};
+
+class Json::value_iterator {
+public:
+  using difference_type = std::ptrdiff_t;
+  using value_type = const object_t::mapped_type &;
+  using pointer = void;
+  using reference = void;
+  using iterator_category = std::input_iterator_tag;
+
+  value_iterator(const Json &jsn) : m_ref{jsn}, m_cur{} {}
+
+  value_iterator begin() const {
+    value_iterator iter{m_ref};
+    iter.set_begin();
+    return iter;
+  }
+
+  value_iterator end() const {
+    value_iterator iter{m_ref};
+    iter.set_end();
+    return iter;
+  }
+
+  bool operator==(const value_iterator other) const {
+    return this->m_cur == other.m_cur;
+  }
+
+  bool operator!=(const value_iterator other) const {
+    return !(*this == other);
+  }
+
+  value_iterator &operator++() {
+    auto last = end();
+    if (*this == last) {
+      return *this;
+    }
+
+    ++m_cur;
+    return *this;
+  }
+
+  value_iterator operator++(int) {
+    auto copy = *this;
+    ++(*this);
+    return copy;
+  }
+
+  value_type operator*() const { return m_cur->second; }
+
+private:
+  void set_begin() { m_cur = m_ref.m_variant.object().begin(); }
+  void set_end() { m_cur = m_ref.m_variant.object().end(); }
+
+private:
+  const Json &m_ref;
+  object_t::iterator m_cur;
+};
+
+class Json::item_iterator {
+public:
+  using difference_type = std::ptrdiff_t;
+  using value_type = const object_t::value_type &;
+  using pointer = void;
+  using reference = void;
+  using iterator_category = std::input_iterator_tag;
+
+  item_iterator(const Json &jsn) : m_ref{jsn}, m_cur{} {}
+
+  item_iterator begin() const {
+    item_iterator iter{m_ref};
+    iter.set_begin();
+    return iter;
+  }
+
+  item_iterator end() const {
+    item_iterator iter{m_ref};
+    iter.set_end();
+    return iter;
+  }
+
+  bool operator==(const item_iterator other) const {
+    return this->m_cur == other.m_cur;
+  }
+
+  bool operator!=(const item_iterator other) const { return !(*this == other); }
+
+  item_iterator &operator++() {
+    auto last = end();
+    if (*this == last) {
+      return *this;
+    }
+
+    ++m_cur;
+    return *this;
+  }
+
+  item_iterator operator++(int) {
+    auto copy = *this;
+    ++(*this);
+    return copy;
+  }
+
+  value_type operator*() const { return *m_cur; }
+
+private:
+  void set_begin() { m_cur = m_ref.m_variant.object().begin(); }
+  void set_end() { m_cur = m_ref.m_variant.object().end(); }
+
+private:
+  const Json &m_ref;
+  object_t::iterator m_cur;
+};
+Json::key_iterator Json::keys() const {
   assert_object_type();
-  std::vector<Json::object_t::key_type> vec;
-  const Json::object_t &obj = m_variant.object();
-  std::for_each(obj.cbegin(), obj.cend(),
-                [&](const auto &item) { vec.push_back(item.first); });
-  return vec;
+  return key_iterator{*this};
 }
 
-std::vector<Json::object_t::mapped_type> Json::values() const {
+Json::value_iterator Json::values() const {
   assert_object_type();
-  std::vector<Json::object_t::mapped_type> vec;
-  const Json::object_t &obj = m_variant.object();
-  std::for_each(obj.cbegin(), obj.cend(),
-                [&](const auto &item) { vec.push_back(item.second); });
-  return vec;
+  return value_iterator{*this};
 }
 
-std::vector<Json::object_t::value_type> Json::items() const {
+Json::item_iterator Json::items() const {
   assert_object_type();
-  std::vector<Json::object_t::value_type> vec;
-  const Json::object_t &obj = m_variant.object();
-  std::for_each(obj.cbegin(), obj.cend(),
-                [&](const auto &item) { vec.push_back(item); });
-  return vec;
+  return item_iterator{*this};
 }
 
 std::ostream &operator<<(std::ostream &out, const Json::object_t &obj) {
@@ -50,7 +205,7 @@ std::ostream &operator<<(std::ostream &out, const Json::object_t &obj) {
     if (index > 0) {
       out << ", ";
     }
-    out << item;
+    out << item.first << ": " << item.second;
     ++index;
   }
   out << '}';
@@ -59,7 +214,7 @@ std::ostream &operator<<(std::ostream &out, const Json::object_t &obj) {
 
 std::ostream &operator<<(std::ostream &out,
                          const Json::object_t::value_type &item) {
-  out << item.first << ": " << item.second;
+  out << '(' << item.first << ", " << item.second << ')';
   return out;
 }
 
@@ -131,6 +286,7 @@ bool Json::hasValue(const object_t::mapped_type &value) const {
       [&](const object_t::value_type &item) { return item.second == value; });
   return result != obj.cend();
 }
+
 } // namespace json
 
 #endif
