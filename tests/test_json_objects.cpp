@@ -103,7 +103,7 @@ void testUsage() {
   Json person = Json::object_t{};
 
   person["name"] = "John Doe";
-  person["age"] = 27;
+  person["age"] = 27l;
   person["relations"] = Json::object_t();
   person["relations"]["father"] = "John Doe's father";
   person["relations"]["mother"] = "John Doe's mother";

@@ -21,6 +21,7 @@ enum class Type {
   string,
   object,
   integer,
+  floating_point,
 };
 
 class Json {
@@ -29,6 +30,7 @@ public:
   using string_t = std::string;
   using object_t = std::map<string_t, Json>;
   using int_t = std::int64_t;
+  using float_t = double;
 
 public: // Constructors
   Json() : m_variant{} {}
@@ -46,6 +48,9 @@ public: // Constructors
 
   // Json integer ctors
   Json(int_t n) : m_variant{n} {}
+
+  // Json floating ctors
+  Json(float_t n) : m_variant{n} {}
 
 public: // Json common operations
   Type type() const { return m_variant.type(); }
@@ -74,6 +79,11 @@ public: // Json string operations
   operator string_t() && {
     assert_string_type();
     return m_variant.extract_str();
+  }
+
+  Json &operator=(const char *str) {
+    m_variant = CoreWrapper{str};
+    return *this;
   }
 
 private: // Json string private operations
@@ -138,6 +148,28 @@ private: // Json integer private operations
     }
   }
 
+public: // Json floating point operations
+  bool isFloatingPoint() const {
+    return (m_variant.type() == Type::floating_point);
+  }
+
+  float_t toFloatingPoint() {
+    assert_floating_point_type();
+    return m_variant.floating_point();
+  }
+
+  explicit operator float_t() {
+    assert_floating_point_type();
+    return m_variant.floating_point();
+  }
+
+private: // Json floating point private operations
+  void assert_floating_point_type() {
+    if (!isFloatingPoint()) {
+      throw std::runtime_error{"TypeError: not a json floating point"};
+    }
+  }
+
 private:
   struct CoreWrapper {
   private:
@@ -146,6 +178,7 @@ private:
       std::unique_ptr<string_t> m_pstr;
       std::unique_ptr<object_t> m_pobj;
       std::unique_ptr<int_t> m_pint;
+      std::unique_ptr<float_t> m_pfloat;
 
       Core() : m_pnull{Default<null_t>()} {}
 
@@ -156,6 +189,8 @@ private:
       Core(object_t obj) : m_pobj{make<object_t>(std::move(obj))} {}
 
       Core(int_t n) : m_pint{make<int_t>(n)} {}
+
+      Core(float_t n) : m_pfloat{make<float_t>(n)} {}
 
       Core &operator=(string_t &&str) {
         constructInner<string_t>(&m_pstr, std::forward<string_t>(str));
@@ -177,6 +212,11 @@ private:
         return *this;
       }
 
+      Core &operator=(float_t n) {
+        constructInner<float_t>(&m_pfloat, n);
+        return *this;
+      }
+
       string_t &str() const { return *m_pstr; }
 
       null_t &null() const { return *m_pnull; }
@@ -184,6 +224,8 @@ private:
       object_t &object() const { return *m_pobj; }
 
       int_t integer() const { return *m_pint; }
+
+      float_t floating_point() const { return *m_pfloat; }
 
       string_t extract_str() { return std::move(*m_pstr); }
 
@@ -200,6 +242,8 @@ private:
       void delete_object() { m_pobj.~unique_ptr(); }
 
       void delete_integer() { m_pint.~unique_ptr(); }
+
+      void delete_floating_point() { m_pfloat.~unique_ptr(); }
 
       void delete_default() { delete_null(); }
 
@@ -240,6 +284,8 @@ private:
 
     CoreWrapper(int_t n) : m_type{Type::integer}, m_core{n} {}
 
+    CoreWrapper(float_t n) : m_type{Type::floating_point}, m_core{n} {}
+
     CoreWrapper(const CoreWrapper &other) : m_type{other.m_type} {
       m_core.delete_default();
       switch (other.m_type) {
@@ -261,6 +307,9 @@ private:
       case Type::integer:
         m_core = other.integer();
         break;
+      case Type::floating_point:
+        m_core = other.floating_point();
+        break;
       default:
         break;
       }
@@ -280,6 +329,9 @@ private:
         break;
       case Type::integer:
         m_core = other.integer();
+        break;
+      case Type::floating_point:
+        m_core = other.floating_point();
         break;
       default:
         break;
@@ -311,6 +363,9 @@ private:
       case Type::integer:
         m_core = other.integer();
         break;
+      case Type::floating_point:
+        m_core = other.floating_point();
+        break;
       default:
         break;
       }
@@ -334,6 +389,9 @@ private:
       case Type::integer:
         m_core = other.integer();
         break;
+      case Type::floating_point:
+        m_core = other.floating_point();
+        break;
       default:
         break;
       }
@@ -349,6 +407,8 @@ private:
     object_t &object() const { return m_core.object(); }
 
     int_t integer() const { return m_core.integer(); }
+
+    float_t floating_point() const { return m_core.floating_point(); }
 
     string_t extract_str() {
       return std::forward<string_t>(m_core.extract_str());
@@ -375,6 +435,9 @@ private:
         m_core.delete_object();
       case Type::integer:
         m_core.delete_integer();
+        break;
+      case Type::floating_point:
+        m_core.delete_floating_point();
         break;
       default:
         break;
