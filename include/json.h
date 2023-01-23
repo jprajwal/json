@@ -22,6 +22,7 @@ enum class Type {
   object,
   integer,
   floating_point,
+  boolean,
 };
 
 class Json {
@@ -31,6 +32,7 @@ public:
   using object_t = std::map<string_t, Json>;
   using int_t = std::int64_t;
   using float_t = double;
+  using bool_t = bool;
 
 public: // Constructors
   Json() : m_variant{} {}
@@ -51,6 +53,9 @@ public: // Constructors
 
   // Json floating ctors
   Json(float_t n) : m_variant{n} {}
+
+  // Json boolean ctors
+  Json(bool_t b) : m_variant{b} {}
 
 public: // Json common operations
   Type type() const { return m_variant.type(); }
@@ -170,6 +175,23 @@ private: // Json floating point private operations
     }
   }
 
+public: // Json boolean operations
+  bool isBoolean() const { return (m_variant.type() == Type::boolean); }
+
+  bool_t toBoolean() { return m_variant.boolean(); }
+
+  explicit operator bool_t() {
+    assert_boolean_type();
+    return m_variant.boolean();
+  }
+
+private: // Json boolean private operations
+  void assert_boolean_type() {
+    if (!isBoolean()) {
+      throw std::runtime_error{"TypeError: not a json boolean"};
+    }
+  }
+
 private:
   struct CoreWrapper {
   private:
@@ -179,6 +201,7 @@ private:
       std::unique_ptr<object_t> m_pobj;
       std::unique_ptr<int_t> m_pint;
       std::unique_ptr<float_t> m_pfloat;
+      std::unique_ptr<bool_t> m_pbool;
 
       Core() : m_pnull{Default<null_t>()} {}
 
@@ -191,6 +214,8 @@ private:
       Core(int_t n) : m_pint{make<int_t>(n)} {}
 
       Core(float_t n) : m_pfloat{make<float_t>(n)} {}
+
+      Core(bool_t b) : m_pbool{make<bool_t>(b)} {}
 
       Core &operator=(string_t &&str) {
         constructInner<string_t>(&m_pstr, std::forward<string_t>(str));
@@ -217,6 +242,11 @@ private:
         return *this;
       }
 
+      Core &operator=(bool_t b) {
+        constructInner<bool_t>(&m_pbool, b);
+        return *this;
+      }
+
       string_t &str() const { return *m_pstr; }
 
       null_t &null() const { return *m_pnull; }
@@ -226,6 +256,8 @@ private:
       int_t integer() const { return *m_pint; }
 
       float_t floating_point() const { return *m_pfloat; }
+
+      bool_t boolean() const { return *m_pbool; }
 
       string_t extract_str() { return std::move(*m_pstr); }
 
@@ -244,6 +276,8 @@ private:
       void delete_integer() { m_pint.~unique_ptr(); }
 
       void delete_floating_point() { m_pfloat.~unique_ptr(); }
+
+      void delete_boolean() { m_pbool.~unique_ptr(); }
 
       void delete_default() { delete_null(); }
 
@@ -286,6 +320,8 @@ private:
 
     CoreWrapper(float_t n) : m_type{Type::floating_point}, m_core{n} {}
 
+    CoreWrapper(bool_t b) : m_type{Type::boolean}, m_core{b} {}
+
     CoreWrapper(const CoreWrapper &other) : m_type{other.m_type} {
       m_core.delete_default();
       switch (other.m_type) {
@@ -310,6 +346,9 @@ private:
       case Type::floating_point:
         m_core = other.floating_point();
         break;
+      case Type::boolean:
+        m_core = other.boolean();
+        break;
       default:
         break;
       }
@@ -332,6 +371,9 @@ private:
         break;
       case Type::floating_point:
         m_core = other.floating_point();
+        break;
+      case Type::boolean:
+        m_core = other.boolean();
         break;
       default:
         break;
@@ -366,6 +408,9 @@ private:
       case Type::floating_point:
         m_core = other.floating_point();
         break;
+      case Type::boolean:
+        m_core = other.boolean();
+        break;
       default:
         break;
       }
@@ -392,6 +437,9 @@ private:
       case Type::floating_point:
         m_core = other.floating_point();
         break;
+      case Type::boolean:
+        m_core = other.boolean();
+        break;
       default:
         break;
       }
@@ -409,6 +457,8 @@ private:
     int_t integer() const { return m_core.integer(); }
 
     float_t floating_point() const { return m_core.floating_point(); }
+
+    bool_t boolean() const { return m_core.boolean(); }
 
     string_t extract_str() {
       return std::forward<string_t>(m_core.extract_str());
@@ -438,6 +488,9 @@ private:
         break;
       case Type::floating_point:
         m_core.delete_floating_point();
+        break;
+      case Type::boolean:
+        m_core.delete_boolean();
         break;
       default:
         break;
