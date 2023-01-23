@@ -108,6 +108,7 @@ void testUsage() {
   person["relations"]["father"] = "John Doe's father";
   person["relations"]["mother"] = "John Doe's mother";
   person["experience"] = {{"company1", "1 month"}, {"company2", "6 years"}};
+  person["is_male"] = true;
 
   auto experience = person.pop("experience");
   experience.set({"company3", "0 years"});
