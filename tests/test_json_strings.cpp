@@ -58,6 +58,13 @@ void testHeldTypeMutability() {
   json::log << j << std::endl;
 }
 
+void testDumps() {
+  json::Json j = "test str: こんにちは\n";
+  auto str = j.dumps();
+  json::log << "dumped string is: " << str << std::endl;
+  assert(str == "\"test str: \\u3053\\u3093\\u306b\\u3061\\u306f\\n\"");
+}
+
 int main() {
   testDefaultCstr();
   testJsonStrCopyCstr();
@@ -66,4 +73,5 @@ int main() {
   testJsonNonStringIterator();
   testJsonStringOstreamInsertion();
   testHeldTypeMutability();
+  testDumps();
 }

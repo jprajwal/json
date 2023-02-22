@@ -192,6 +192,9 @@ private: // Json boolean private operations
     }
   }
 
+public: // Json text generator operation (serializing operation)
+  std::string dumps();
+
 private:
   struct CoreWrapper {
   private:
@@ -287,12 +290,12 @@ private:
       }
 
       template <typename T, typename... Ts>
-      std::unique_ptr<T> make(Ts &&... args) {
+      std::unique_ptr<T> make(Ts &&...args) {
         return std::make_unique<T>(std::forward<Ts>(args)...);
       }
 
       template <typename T, typename... Ts>
-      void constructInner(std::unique_ptr<T> *inner, Ts &&... args) {
+      void constructInner(std::unique_ptr<T> *inner, Ts &&...args) {
         new (inner) std::unique_ptr<T>{make<T>(std::forward<Ts>(args)...)};
       }
 

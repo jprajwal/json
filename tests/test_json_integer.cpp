@@ -17,7 +17,16 @@ void testStaticCasting() {
   assert(n == 1234);
 }
 
+void testDumps() {
+  using json::Json;
+  Json n = 1234l;
+  auto str = n.dumps();
+  json::log << "dumped integer: " << str << std::endl;
+  assert(str == "1234");
+}
+
 int main() {
   testInit();
   testStaticCasting();
+  testDumps();
 }
