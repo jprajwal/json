@@ -39,7 +39,7 @@ public: // Constructors
 
   // Json string ctors
   Json(const char *str) : m_variant{str} {}
-  Json(string_t &str) : m_variant{str} {}
+  Json(const string_t &str) : m_variant{string_t{str}} {}
   Json(string_t &&str) : m_variant{std::forward<string_t>(str)} {}
 
   // Json object ctors
@@ -136,7 +136,7 @@ private: // Json object private operations
 
 public: // Json integer operations
   bool isInteger() const { return (m_variant.type() == Type::integer); }
-  int_t toInteger() {
+  int_t toInteger() const {
     assert_integer_type();
     return m_variant.integer();
   }
@@ -158,7 +158,7 @@ public: // Json floating point operations
     return (m_variant.type() == Type::floating_point);
   }
 
-  float_t toFloatingPoint() {
+  float_t toFloatingPoint() const {
     assert_floating_point_type();
     return m_variant.floating_point();
   }
@@ -169,7 +169,7 @@ public: // Json floating point operations
   }
 
 private: // Json floating point private operations
-  void assert_floating_point_type() {
+  void assert_floating_point_type() const {
     if (!isFloatingPoint()) {
       throw std::runtime_error{"TypeError: not a json floating point"};
     }
@@ -178,7 +178,10 @@ private: // Json floating point private operations
 public: // Json boolean operations
   bool isBoolean() const { return (m_variant.type() == Type::boolean); }
 
-  bool_t toBoolean() { return m_variant.boolean(); }
+  bool_t toBoolean() const {
+    assert_boolean_type();
+    return m_variant.boolean();
+  }
 
   explicit operator bool_t() {
     assert_boolean_type();
@@ -186,14 +189,28 @@ public: // Json boolean operations
   }
 
 private: // Json boolean private operations
-  void assert_boolean_type() {
+  void assert_boolean_type() const {
     if (!isBoolean()) {
       throw std::runtime_error{"TypeError: not a json boolean"};
     }
   }
 
+public: // Json Null operations
+  bool isNull() const { return {m_variant.type() == Type::null}; }
+  null_t toNull() const {
+    assert_null_type();
+    return m_variant.null();
+  }
+
+private: // Json Null private operations
+  void assert_null_type() const {
+    if (!isNull()) {
+      throw std::runtime_error{"TypeError: not a json null"};
+    }
+  }
+
 public: // Json text generator operation (serializing operation)
-  std::string dumps();
+  std::string dumps() const;
 
 private:
   struct CoreWrapper {

@@ -133,6 +133,20 @@ void testTypeCastingByMove() {
   assert(std::find(keys.begin(), keys.end(), "key1") == keys.end());
 }
 
+void testDumps() {
+  using json::Json;
+  Json person = Json::object_t{};
+
+  person["name"] = "John Doe";
+  person["age"] = 27l;
+  person["relations"] = Json::object_t();
+  person["relations"]["father"] = "John Doe's father";
+  person["relations"]["mother"] = "John Doe's mother";
+  person["experience"] = {{"company1", "1 month"}, {"company2", "6 years"}};
+  person["is_male"] = true;
+  json::log << "dumped object: " << person.dumps() << std::endl;
+}
+
 int main() {
   testCstr();
   testKeys();
@@ -147,4 +161,5 @@ int main() {
   testUsage();
   testTypeCastingByCopy();
   testTypeCastingByMove();
+  testDumps();
 }

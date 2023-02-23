@@ -61,7 +61,7 @@ bool Json::operator==(const Json &other) const {
 
 bool Json::operator!=(const Json &other) const { return !(*this == other); }
 
-std::string Json::dumps() {
+std::string Json::dumps() const {
   std::stringstream result;
 
   switch (m_variant.type()) {
@@ -73,9 +73,7 @@ std::string Json::dumps() {
     result << '"';
     std::size_t index = 0;
     for (auto rune : runeArray) {
-      // log << std::hex << "rune: " << rune << std::endl;
       if (!rune.isValid()) {
-        // log << "rune is invalid" << std::endl;
         throw std::runtime_error{std::string{"JsonEncodeError: position: "} +
                                  std::to_string(index)};
       }
@@ -116,22 +114,34 @@ std::string Json::dumps() {
     result << '"';
     return result.str();
   }
-  case Type::object:
-
-    break;
+  case Type::object: {
+    result << '{';
+    std::size_t count = 0;
+    for (auto &[key, value] : items()) {
+      if (count > 0) {
+        result << ",";
+      }
+      result << Json{key}.dumps() << ":" << value.dumps();
+      ++count;
+    }
+    result << '}';
+    return result.str();
+  }
   case Type::integer:
     result << toInteger();
     return result.str();
   case Type::floating_point:
-    break;
+    result << toFloatingPoint();
+    return result.str();
   case Type::boolean:
-    break;
+    result << std::boolalpha << toBoolean();
+    return result.str();
   case Type::null:
-    break;
+    result << toNull();
+    return result.str();
   default:
-    break;
+    return result.str();
   }
-  return result.str();
 }
 } // namespace json
 
