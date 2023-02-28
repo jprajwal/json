@@ -19,6 +19,8 @@ class Rune {
   static constexpr uint32_t ASCII_END = 0x007F;
   static constexpr uint32_t CTRL_CHRS_START = 0x0000;
   static constexpr uint32_t CTRL_CHRS_END = 0x001F;
+  static constexpr uint32_t DIGIT_START = 0x0030;
+  static constexpr uint32_t DIGIT_END = 0x0039;
 
 public:
   Rune() : mData{} {}
@@ -26,6 +28,9 @@ public:
   constexpr bool isValid() const { return (isASCII() || isBMP() || isSMP()); }
   constexpr bool isASCII() const {
     return (ASCII_START <= mData) && (mData <= ASCII_END);
+  }
+  constexpr bool isDigit() const {
+    return (DIGIT_START <= mData) && (mData <= DIGIT_END);
   }
   constexpr bool isControlChar() const {
     return ((CTRL_CHRS_START <= mData) && (mData <= CTRL_CHRS_END)) ||
@@ -56,6 +61,9 @@ public:
   bool operator==(const Rune other) const { return mData == other.mData; }
   bool operator==(const std::uint32_t other) const { return mData == other; }
   bool operator!=(const Rune other) const { return !(*this == other); }
+  operator char() const { return static_cast<char>(mData); }
+  operator std::uint32_t() const { return static_cast<uint32_t>(mData); }
+  operator std::uint16_t() const { return static_cast<uint16_t>(mData); }
 
 private:
   std::uint32_t mData{};

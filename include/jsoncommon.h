@@ -1,14 +1,22 @@
 #ifndef JSON_JSONCOMMON_H
 #define JSON_JSONCOMMON_H
 
-#include "codec/utf16char.h"
+#include "codec/rune.h"
 #include "codec/utf16codec.h"
 #include "codec/utf8codec.h"
+#include "codecv2/codec.h"
+#include "codecv2/encoder.h"
+#include "codecv2/utf16_lcu.h"
+#include "codecv2/utf8_lcu.h"
 #include "json.h"
 
+#include <cstdint>
 #include <ios>
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
+#include <string>
+#include <vector>
 
 namespace json {
 std::ostream &operator<<(std::ostream &out, const Json &jsn) {
@@ -141,6 +149,133 @@ std::string Json::dumps() const {
     return result.str();
   default:
     return result.str();
+  }
+}
+
+static std::string parseJsonString(const std::string &str) {
+  std::string result;
+  for (std::size_t i = 1; i < str.size() - 1; ++i) {
+    auto ch = str[i];
+    if (i == str.size() - 1 && ch != '"') {
+      throw -1;
+    }
+    if (ch == '\\') {
+      if (i == str.size() - 1) {
+        throw -1;
+      }
+      auto nch = str[i + 1];
+      if (nch == 'n') {
+        result.push_back('\n');
+        ++i;
+      } else if (nch == 'r') {
+        result.push_back('\r');
+        ++i;
+      } else if (nch == 't') {
+        result.push_back('\t');
+        ++i;
+      } else if (nch == 'b') {
+        result.push_back('\b');
+        ++i;
+      } else if (nch == 'f') {
+        result.push_back('\f');
+        ++i;
+      } else if (nch == '"') {
+        result.push_back('"');
+        ++i;
+      } else if (nch == 'u') {
+        std::size_t j = i + 2;
+        auto first = std::stoi(str.substr(j, 4));
+        j += 4;
+        json::codecv2::UTF8LCU lcu8(first);
+        json::codecv2::UTF16LCU lcu16(static_cast<std::uint16_t>(first));
+
+        if (lcu8.isValid()) { // if lcu8 is valid, then data it might be utf8
+          std::string toDecode;
+          toDecode.push_back(static_cast<unsigned char>(first));
+          for (std::size_t index = 0; index < lcu8.continuationUnitCount();
+               ++index) {
+            j += 2; // TODO: validate '\u' and length of str.
+            auto codeUnit = std::stoi(str.substr(j, 4));
+            j += 4;
+            toDecode.push_back(static_cast<unsigned char>(codeUnit));
+          }
+          json::codecv2::UTF8Decoder decoder;
+          // decode to verify the code-points are valid utf8 code points.
+          decoder.decode(toDecode); // TODO: Handle errors
+
+          // json::codecv2::UTF8Encoder encoder;
+          // result.append(encoder.encode(runes));
+
+          i += j;
+          continue;
+        } else if (lcu16.isValid()) {
+          std::basic_string<char16_t> toDecode;
+          toDecode.push_back(static_cast<char16_t>(first));
+          for (std::size_t index = 0; index < lcu16.continuationUnitCount();
+               ++index) {
+            j += 2; // TODO: validate '\u' and length of str.
+            auto codeUnit = std::stoi(str.substr(j, 4));
+            j += 4;
+            toDecode.push_back(static_cast<char16_t>(codeUnit));
+          }
+          json::codecv2::UTF16Decoder decoder;
+          // decode to verify the code-points are valid utf16 code points.
+          auto runes = decoder.decode(toDecode); // TODO: Handle errors
+
+          json::codecv2::UTF8Encoder encoder;
+          result.append(encoder.encode(runes));
+
+          i += j;
+          continue;
+        } else {
+          throw -1;
+        }
+      } else {
+        throw -1;
+      }
+    } else {
+      result.push_back(ch);
+    }
+  }
+  return result;
+}
+
+Json Json::loads(const std::string &s) {
+  if (s.size() == 0) {
+    // TODO: Figure out exception type
+    throw -1;
+  }
+  // step 1: Check encoding is utf-8 or not.
+  auto runes = json::codecv2::UTF8Decoder().decode(s);
+
+  // step 2: verify structure is according to json grammar.
+  // Identify outermost element.
+  auto rune = runes[0];
+  if (!rune.isASCII()) {
+    throw -1;
+  }
+
+  Type outermostType = Type::null;
+  auto ch = static_cast<char>(rune);
+  if (ch == '{') {
+    outermostType = Type::object;
+  } else if (ch == '"') {
+    outermostType = Type::string;
+  } else if (rune.isDigit()) {
+    outermostType = Type::floating_point;
+  } else if (s == "true" || s == "false") {
+    outermostType = Type::boolean;
+  } else if (s == "null") {
+    outermostType = Type::null;
+  } else {
+    throw -1;
+  }
+
+  switch (outermostType) {
+  case Type::string:
+    return parseJsonString(s);
+  default:
+    return Json();
   }
 }
 } // namespace json

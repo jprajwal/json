@@ -196,7 +196,7 @@ private: // Json boolean private operations
   }
 
 public: // Json Null operations
-  bool isNull() const { return {m_variant.type() == Type::null}; }
+  bool isNull() const { return m_variant.type() == Type::null; }
   null_t toNull() const {
     assert_null_type();
     return m_variant.null();
@@ -211,6 +211,9 @@ private: // Json Null private operations
 
 public: // Json text generator operation (serializing operation)
   std::string dumps() const;
+
+  // Json text parser operation (deserializing operation)
+  static Json loads(const std::string &);
 
 private:
   struct CoreWrapper {
@@ -307,12 +310,12 @@ private:
       }
 
       template <typename T, typename... Ts>
-      std::unique_ptr<T> make(Ts &&...args) {
+      std::unique_ptr<T> make(Ts &&... args) {
         return std::make_unique<T>(std::forward<Ts>(args)...);
       }
 
       template <typename T, typename... Ts>
-      void constructInner(std::unique_ptr<T> *inner, Ts &&...args) {
+      void constructInner(std::unique_ptr<T> *inner, Ts &&... args) {
         new (inner) std::unique_ptr<T>{make<T>(std::forward<Ts>(args)...)};
       }
 

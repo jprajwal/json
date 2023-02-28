@@ -65,6 +65,19 @@ void testDumps() {
   assert(str == "\"test str: \\u3053\\u3093\\u306b\\u3061\\u306f\\n\"");
 }
 
+void testLoads() {
+  std::string test = R"("test str")";
+  auto result = json::Json::loads(test);
+  json::log << "loaded json: " << result << std::endl;
+  assert(result.toString() == "test str");
+}
+
+void testLoadsMultiByteChars() {
+  std::string test = R"("test str: \u3053\u3093\u306b\u3061\u306f\n")";
+  auto result = json::Json::loads(test);
+  json::log << "loaded json: " << result << std::endl;
+  assert(result.toString() == "test str: こんにちは\n");
+}
 int main() {
   testDefaultCstr();
   testJsonStrCopyCstr();
@@ -74,4 +87,6 @@ int main() {
   testJsonStringOstreamInsertion();
   testHeldTypeMutability();
   testDumps();
+  testLoads();
+  testLoadsMultiByteChars();
 }
