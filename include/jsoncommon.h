@@ -9,8 +9,11 @@
 #include "codecv2/utf16_lcu.h"
 #include "codecv2/utf8_lcu.h"
 #include "json.h"
+#include "test.h"
 
+#include <bitset>
 #include <cstdint>
+#include <cstring>
 #include <ios>
 #include <iostream>
 #include <sstream>
@@ -184,52 +187,37 @@ static std::string parseJsonString(const std::string &str) {
         ++i;
       } else if (nch == 'u') {
         std::size_t j = i + 2;
-        auto first = std::stoi(str.substr(j, 4));
+        auto first = std::stoi(str.substr(j, 4), nullptr, 16);
+        json::log << "first: " << std::bitset<16>(first) << ", " << std::hex
+                  << first << std::endl;
         j += 4;
-        json::codecv2::UTF8LCU lcu8(first);
-        json::codecv2::UTF16LCU lcu16(static_cast<std::uint16_t>(first));
+        json::codecv2::UTF8Encoder encoder;
+        json::codecv2::UTF16Decoder decoder;
+        json::codec::Rune rune(first);
+        json::log << std::boolalpha << "is rune valid: " << rune.isValid()
+                  << std::endl;
 
-        if (lcu8.isValid()) { // if lcu8 is valid, then data it might be utf8
-          std::string toDecode;
-          toDecode.push_back(static_cast<unsigned char>(first));
-          for (std::size_t index = 0; index < lcu8.continuationUnitCount();
-               ++index) {
-            j += 2; // TODO: validate '\u' and length of str.
-            auto codeUnit = std::stoi(str.substr(j, 4));
-            j += 4;
-            toDecode.push_back(static_cast<unsigned char>(codeUnit));
+        if (rune.isBMP()) {
+          auto tmp = encoder.encode({rune});
+          auto byteArray = tmp.c_str();
+          auto len = std::strlen(byteArray);
+          for (std::size_t i = 0; i < len; i++) {
+            json::log << std::bitset<8>(byteArray[i]) << ' ';
           }
-          json::codecv2::UTF8Decoder decoder;
-          // decode to verify the code-points are valid utf8 code points.
-          decoder.decode(toDecode); // TODO: Handle errors
-
-          // json::codecv2::UTF8Encoder encoder;
-          // result.append(encoder.encode(runes));
-
-          i += j;
-          continue;
-        } else if (lcu16.isValid()) {
+          json::log << std::endl;
+          result.append(tmp);
+        } else {
+          j += 2;
+          auto second = std::stoi(str.substr(j, 4), nullptr, 16);
+          j += 4;
           std::basic_string<char16_t> toDecode;
           toDecode.push_back(static_cast<char16_t>(first));
-          for (std::size_t index = 0; index < lcu16.continuationUnitCount();
-               ++index) {
-            j += 2; // TODO: validate '\u' and length of str.
-            auto codeUnit = std::stoi(str.substr(j, 4));
-            j += 4;
-            toDecode.push_back(static_cast<char16_t>(codeUnit));
-          }
-          json::codecv2::UTF16Decoder decoder;
-          // decode to verify the code-points are valid utf16 code points.
-          auto runes = decoder.decode(toDecode); // TODO: Handle errors
-
-          json::codecv2::UTF8Encoder encoder;
+          toDecode.push_back(static_cast<char16_t>(second));
+          auto runes = decoder.decode(toDecode);
           result.append(encoder.encode(runes));
-
-          i += j;
-          continue;
-        } else {
-          throw -1;
         }
+        i = j - 1;
+        continue;
       } else {
         throw -1;
       }
