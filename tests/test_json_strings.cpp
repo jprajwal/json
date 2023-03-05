@@ -78,6 +78,14 @@ void testLoadsMultiByteChars() {
   json::log << "loaded json: " << result << std::endl;
   assert(result.toString() == "test str: こんにちは\n");
 }
+
+void testLoadsMultiByteCharsNonBMP() {
+  std::string test = R"("test str: \uD834\uDD1E\uD801\uDC37\thello")";
+  auto result = json::Json::loads(test);
+  json::log << "loaded json: " << result << std::endl;
+  assert(result.toString() == "test str: 𝄞𐐷\thello");
+}
+
 int main() {
   testDefaultCstr();
   testJsonStrCopyCstr();
@@ -89,4 +97,5 @@ int main() {
   testDumps();
   testLoads();
   testLoadsMultiByteChars();
+  testLoadsMultiByteCharsNonBMP();
 }

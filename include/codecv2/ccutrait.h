@@ -1,6 +1,7 @@
 #ifndef JSON_CODECV2_CCUTRAIT_H
 #define JSON_CODECV2_CCUTRAIT_H
 
+#include <iostream>
 #include <string>
 
 namespace json {
@@ -19,6 +20,11 @@ public:
   virtual bool isValid() const = 0;
   virtual std::size_t payloadSize() const = 0;
   virtual int_type payload() const = 0;
+
+  friend std::ostream &operator<<(std::ostream &out, const CCUTrait &ccu) {
+    out << ccu.mData;
+    return out;
+  }
 
 protected:
   virtual ~CCUTrait() = default;

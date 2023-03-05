@@ -32,7 +32,7 @@ public:
       return 0;
     }
   }
-  int_type payload() const override { return mData << 6; }
+  int_type payload() const override { return 0x03FF & mData; }
 
 private:
   bool isTwoByteChar() const {

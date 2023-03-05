@@ -37,7 +37,7 @@ public:
            mData == ASCII_END;
   }
   constexpr bool isBMP() const {
-    return (((BMP_1_START <= mData) && (mData <= BMP_2_END)) ||
+    return (((BMP_1_START <= mData) && (mData <= BMP_1_END)) ||
             ((BMP_2_START <= mData) && (mData <= BMP_2_END)));
   }
   constexpr bool isSMP() const {

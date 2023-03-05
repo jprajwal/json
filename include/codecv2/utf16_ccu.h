@@ -11,11 +11,11 @@ class UTF16CCU : CCUTrait<char16_t> {
 
 public:
   using CCUTrait<char16_t>::CCUTrait;
-  bool isValid() const override { return (this->mData >> 10) == 0xDC00; }
+  bool isValid() const override { return (this->mData >> 10) == 0b00110111; }
 
   std::size_t payloadSize() const override { return 10; }
 
-  int_type payload() const override { return this->mData << 6; }
+  int_type payload() const override { return 0x03FF & this->mData; }
 };
 
 } // namespace codecv2
