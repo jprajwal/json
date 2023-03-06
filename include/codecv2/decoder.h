@@ -7,9 +7,7 @@
 #include "codecv2/utf16_lcu.h"
 #include "codecv2/utf8_ccu.h"
 #include "codecv2/utf8_lcu.h"
-#include "test.h"
 
-#include <bitset>
 #include <iterator>
 
 namespace json {
@@ -23,33 +21,23 @@ public:
       typename std::basic_string<CharT>::const_iterator &end) const override {
 
     LCU lcu = *cur;
-    json::log << "lcu: " << std::hex << *cur << ", " << std::bitset<16>(*cur)
-              << std::endl;
     std::size_t index = 0;
     if (!lcu.isValid()) {
       throw index;
     }
 
     auto ccuCount = lcu.continuationUnitCount();
-    json::log << "ccuCount: " << ccuCount << std::endl;
     if (static_cast<signed long>(index + ccuCount) > std::distance(cur, end)) {
-      json::log << "iterator distance is invalid" << std::endl;
       throw index;
     }
 
     codec::Rune rune = static_cast<codec::Rune>(lcu.payload());
     ++cur;
     ++index;
-    json::log << "lcu payload: " << std::hex << rune << ", "
-              << std::bitset<16>(rune) << std::endl;
-
     std::size_t subIndex = 0;
     while (subIndex < ccuCount) {
       CCU ccu{*cur};
-      json::log << "ccu: " << std::hex << *cur << ", " << std::bitset<16>(*cur)
-                << std::endl;
       if (!ccu.isValid()) {
-        json::log << "ccu is invalid" << std::endl;
         throw index + subIndex;
       }
       rune =
@@ -57,8 +45,6 @@ public:
       ++cur;
       ++subIndex;
     }
-    json::log << "rune: " << std::hex << rune << ", " << std::bitset<32>(rune)
-              << std::endl;
     return rune;
   }
 

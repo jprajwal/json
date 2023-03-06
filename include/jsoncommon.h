@@ -4,13 +4,12 @@
 #include "codec/rune.h"
 #include "codec/utf16codec.h"
 #include "codec/utf8codec.h"
-#include "codecv2/codec.h"
+#include "codecv2/decoder.h"
 #include "codecv2/encoder.h"
 #include "codecv2/utf16_lcu.h"
 #include "codecv2/utf8_lcu.h"
 #include "json.h"
 #include "json_decode_error.h"
-#include "test.h"
 
 #include <bitset>
 #include <cstdint>
@@ -190,25 +189,20 @@ static std::string parseJsonString(const std::string &str) {
         std::size_t j = i + 2;
         auto first = std::stoi(str.substr(j, 4), nullptr, 16);
         j += 4;
-        json::codecv2::UTF8Encoder encoder;
-        json::codecv2::UTF16Decoder decoder;
+        json::codecv2::UTF8Encoder utf8encoder;
+        json::codecv2::UTF16Decoder utf16decoder;
         json::codec::Rune rune(first);
         if (rune.isBMP()) {
-          json::log << std::hex << "processing as BMP: " << first << std::endl;
-          result.append(encoder.encode({rune}));
+          result.append(utf8encoder.encode({rune}));
         } else {
           j += 2;
           auto second = std::stoi(str.substr(j, 4), nullptr, 16);
           j += 4;
           std::basic_string<char16_t> toDecode;
-          json::log << std::hex << "first: " << first << ", second: " << second
-                    << std::endl;
           toDecode.push_back(static_cast<char16_t>(first));
           toDecode.push_back(static_cast<char16_t>(second));
-          auto runes = decoder.decode(toDecode);
-          auto tmp = encoder.encode(runes);
-          json::log << "encoded string: " << tmp << std::endl;
-          result.append(tmp);
+          auto runes = utf16decoder.decode(toDecode);
+          result.append(utf8encoder.encode(runes));
         }
         i = j - 1;
         continue;
