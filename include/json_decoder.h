@@ -57,6 +57,11 @@ private:
     return result;
   }
 
+  bool isDigit() {
+    auto ch = m_iter.peek(0);
+    return (ch >= 0x30 && ch <= 0x39);
+  }
+
 public:
   Json parseJsonString() {
     std::string result;
@@ -118,6 +123,36 @@ public:
       }
     }
     return result;
+  }
+
+  Json parseJsonNumber() {
+    if (!isDigit() && m_iter.peek(0) != '-') {
+      throw JsonDecodeError(m_iter.lineno(), m_iter.column(), "not a number");
+    }
+
+    auto pos = m_str.substr(m_iter.index(), m_iter.remaining() + 1)
+                   .find_first_not_of("0123456789.eE-+");
+    json::log << "pos = " << pos << std::endl;
+    if (pos == std::string_view::npos) {
+      pos = m_str.length() - 1;
+    }
+    auto number = m_iter.take_n(pos + 1);
+    json::log << "number = " << number << std::endl;
+    try {
+      if (number.find('.') == std::string::npos) {
+        auto parsedNumber = std::stoi(number);
+        return Json(Json::int_t{parsedNumber});
+      } else {
+        auto parsedNumber = std::stod(number);
+        return Json(parsedNumber);
+      }
+    } catch (std::invalid_argument &exc) {
+      json::log << "parJsonNumber: " << exc.what() << std::endl;
+      throw JsonDecodeError(m_iter.lineno(), m_iter.column(), exc.what());
+    } catch (std::out_of_range &exc) {
+      json::log << "parsJsonNumber: " << exc.what() << std::endl;
+      throw JsonDecodeError(m_iter.lineno(), m_iter.column(), exc.what());
+    }
   }
 
 private:

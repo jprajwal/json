@@ -1,4 +1,5 @@
 #include "json.h"
+#include "json_decode_error.h"
 #include "test.h"
 #include <cassert>
 
@@ -25,8 +26,34 @@ void testDumps() {
   assert(str == "1234");
 }
 
+void testLoads() {
+  using json::Json;
+  std::string str = "1234";
+  try {
+    Json js = Json::loads(str);
+    assert(js.toInteger() == 1234l);
+  } catch (json::JsonDecodeError &exc) {
+    json::log << exc.what() << std::endl;
+    assert(false);
+  }
+}
+
+void testLoadsNegativeNumber() {
+  using json::Json;
+  std::string str = "-1234";
+  try {
+    Json js = Json::loads(str);
+    assert(js.toInteger() == -1234l);
+  } catch (json::JsonDecodeError &exc) {
+    json::log << exc.what() << std::endl;
+    assert(false);
+  }
+}
+
 int main() {
   testInit();
   testStaticCasting();
   testDumps();
+  testLoads();
+  testLoadsNegativeNumber();
 }

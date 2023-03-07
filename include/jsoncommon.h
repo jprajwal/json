@@ -243,7 +243,7 @@ Json Json::loads(const std::string &s) {
     outermostType = Type::object;
   } else if (ch == '"') {
     outermostType = Type::string;
-  } else if (rune.isDigit()) {
+  } else if (rune.isDigit() or ch == '-') {
     outermostType = Type::floating_point;
   } else if (s == "true" || s == "false") {
     outermostType = Type::boolean;
@@ -256,6 +256,9 @@ Json Json::loads(const std::string &s) {
   switch (outermostType) {
   case Type::string:
     return jsonDecoder.parseJsonString();
+  case Type::integer:
+  case Type::floating_point:
+    return jsonDecoder.parseJsonNumber();
   default:
     return Json();
   }
