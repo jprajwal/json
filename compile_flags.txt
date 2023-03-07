@@ -1,5 +1,5 @@
 -Iinclude/
 -x
 c++
--std=c++17
+-std=c++20
 -Wall

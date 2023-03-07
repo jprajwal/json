@@ -24,6 +24,8 @@ public:
     std::sprintf(m_msg.data(), "column %lu: %s", m_col, str);
   }
 
+  ~JsonDecodeError() = default;
+
   const char *what() const noexcept override { return m_msg.c_str(); }
 };
 } // namespace json

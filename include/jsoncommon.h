@@ -10,6 +10,8 @@
 #include "codecv2/utf8_lcu.h"
 #include "json.h"
 #include "json_decode_error.h"
+#include "json_decoder.h"
+#include "json_text_iter.h"
 
 #include <bitset>
 #include <cstdint>
@@ -155,6 +157,7 @@ std::string Json::dumps() const {
   }
 }
 
+/*
 static std::string parseJsonString(const std::string &str) {
   std::string result;
   for (std::size_t i = 1; i < str.size() - 1; ++i) {
@@ -215,6 +218,7 @@ static std::string parseJsonString(const std::string &str) {
   }
   return result;
 }
+*/
 
 Json Json::loads(const std::string &s) {
   if (s.size() == 0) {
@@ -230,6 +234,8 @@ Json Json::loads(const std::string &s) {
   if (!rune.isASCII()) {
     throw -1;
   }
+
+  JsonDecoder jsonDecoder(std::string_view{s});
 
   Type outermostType = Type::null;
   auto ch = static_cast<char>(rune);
@@ -249,7 +255,7 @@ Json Json::loads(const std::string &s) {
 
   switch (outermostType) {
   case Type::string:
-    return parseJsonString(s);
+    return jsonDecoder.parseJsonString();
   default:
     return Json();
   }

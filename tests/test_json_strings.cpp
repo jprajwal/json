@@ -1,4 +1,5 @@
 #include "json.h"
+#include "json_decode_error.h"
 #include "test.h"
 
 #include <cassert>
@@ -66,17 +67,31 @@ void testDumps() {
 }
 
 void testLoads() {
+  json::log << "testLoads() start" << std::endl;
   std::string test = R"("test str")";
-  auto result = json::Json::loads(test);
-  json::log << "loaded json: " << result << std::endl;
-  assert(result.toString() == "test str");
+  try {
+    auto result = json::Json::loads(test);
+    json::log << "loaded json: " << result << std::endl;
+    assert(result.toString() == "test str");
+  } catch (json::JsonDecodeError &exc) {
+    json::log << exc.what() << std::endl;
+    assert(false);
+  }
+  json::log << "testLoads() end" << std::endl;
 }
 
 void testLoadsMultiByteChars() {
+  json::log << "testLoadsMultiByteChars() start" << std::endl;
   std::string test = R"("test str: \u3053\u3093\u306b\u3061\u306f\n")";
-  auto result = json::Json::loads(test);
-  json::log << "loaded json: " << result << std::endl;
-  assert(result.toString() == "test str: こんにちは\n");
+
+  try {
+    auto result = json::Json::loads(test);
+    json::log << "loaded json: " << result << std::endl;
+    assert(result.toString() == "test str: こんにちは\n");
+  } catch (json::JsonDecodeError &exc) {
+    json::log << exc.what() << std::endl;
+    assert(false);
+  }
 }
 
 void testLoadsMultiByteCharsNonBMP() {

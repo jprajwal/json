@@ -1,7 +1,7 @@
 CC := g++
 ROOT := $(shell pwd)
 INCs := $(ROOT)/include/
-CFLAGS_BASE := -I$(INCs) --std=c++17 -Wall
+CFLAGS_BASE := -I$(INCs) --std=c++2a -Wall
 
 ifeq ($(NDEBUG),1)
 	CFLAGS := $(CFLAGS_BASE) -DNDEBUG
