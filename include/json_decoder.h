@@ -8,6 +8,8 @@
 #include "json_text_iter.h"
 #include "test.h"
 
+#include <algorithm>
+#include <array>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -60,6 +62,22 @@ private:
   bool isDigit() {
     auto ch = m_iter.peek(0);
     return (ch >= 0x30 && ch <= 0x39);
+  }
+
+  bool isWhitespace(char ch) {
+    constexpr std::array<char, 4> whiteSpaces = {'\n', '\r\n', '\t', ' '};
+    for (auto ws : whiteSpaces) {
+      if (ch == ws) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void consumeWhitespace() {
+    while (m_iter.remaining() >= 0 && isWhitespace(m_iter.peek(0))) {
+      ++m_iter;
+    }
   }
 
 public:
@@ -154,6 +172,86 @@ public:
       throw JsonDecodeError(m_iter.lineno(), m_iter.column(), exc.what());
     }
   }
+
+  Json parseJsonBoolean() {
+    if (m_iter.peek(0) != 't' || m_iter.peek(0) != 'f') {
+      throw JsonDecodeError(m_iter.lineno(), m_iter.column(), "not a boolean");
+    }
+    if (m_iter.peek_n(0, 4) == "true") {
+      m_iter.take_n(4);
+      return Json{true};
+    } else if (m_iter.peek_n(0, 5) == "false") {
+      m_iter.take_n(5);
+      return Json{false};
+    } else {
+      throw JsonDecodeError(m_iter.lineno(), m_iter.column(), "not a boolean");
+    }
+  }
+
+  Json parseJsonNull() {
+    if (m_iter.take_n(4) != "null") {
+      throw JsonDecodeError(m_iter.lineno(), m_iter.column(),
+                            "not a json null");
+    }
+    return Json{};
+  }
+
+  Json parseJsonObject() {
+    if (m_iter.peek(0) != '{') {
+      throw JsonDecodeError(m_iter.lineno(), m_iter.column(),
+                            "not a json object");
+    }
+
+    // consume '{'
+    m_iter.take_n(1);
+
+    Json::object_t obj;
+
+    while (true) {
+      if (isWhitespace(m_iter.peek(0))) {
+        consumeWhitespace();
+      }
+
+      if (m_iter.peek(0) != '"') {
+        throw JsonDecodeError(m_iter.lineno(), m_iter.column(),
+                              "expected '\"' for json key");
+      }
+
+      auto key = parseJsonString().toString();
+
+      if (isWhitespace(m_iter.peek(0))) {
+        consumeWhitespace();
+      }
+
+      if (m_iter.take_n(1) != ":") {
+        throw JsonDecodeError(m_iter.lineno(), m_iter.column(),
+                              "expected ':' after json key");
+      }
+
+      if (isWhitespace(m_iter.peek(0))) {
+        consumeWhitespace();
+      }
+
+      auto value = decode();
+      obj.insert({key, value});
+
+      if (isWhitespace(m_iter.peek(0))) {
+        consumeWhitespace();
+      }
+
+      auto end = m_iter.take_n(1);
+      if (end == "}") {
+        return obj;
+      } else if (end == ",") {
+        continue;
+      } else {
+        throw JsonDecodeError(m_iter.lineno(), m_iter.column(),
+                              "expecting ',' after key, value pair");
+      }
+    }
+  }
+
+  Json decode() { return Json{}; }
 
 private:
   std::string_view m_str{};

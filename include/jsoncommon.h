@@ -87,8 +87,7 @@ std::string Json::dumps() const {
     std::size_t index = 0;
     for (auto rune : runeArray) {
       if (!rune.isValid()) {
-        throw std::runtime_error{std::string{"JsonEncodeError: position: "} +
-                                 std::to_string(index)};
+        throw std::runtime_error{std::string{"JsonEncodeError: position: "} + std::to_string(index)};
       }
       if (rune.isASCII()) {
         auto chr = static_cast<char>(rune);

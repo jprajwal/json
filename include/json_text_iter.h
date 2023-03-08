@@ -56,6 +56,14 @@ public:
     return m_iter == other.m_iter;
   }
 
+  JsonTextIter begin() { return JsonTextIter{m_str}; }
+
+  JsonTextIter end() {
+    JsonTextIter iter{m_str};
+    iter.m_iter = m_str.cend();
+    return iter;
+  }
+
   // bool operator<(const JsonTextIter &other) const {
   //   return m_iter < other.m_iter;
   // }
