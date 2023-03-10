@@ -147,6 +147,23 @@ void testDumps() {
   json::log << "dumped object: " << person.dumps() << std::endl;
 }
 
+void testLoads() {
+
+  using json::Json;
+  std::string test =
+      R"({"test_key": {"test_nested_key": "test_nested_value"}})";
+  try {
+    Json js = Json::loads(test);
+    assert(js.type() == json::Type::object);
+    auto map = js.toObject();
+    // assert(map["test_key"] == "test_value");
+    json::log << "loaded json = " << js << std::endl;
+  } catch (json::JsonDecodeError &exc) {
+    json::log << exc.what() << std::endl;
+    throw;
+  }
+}
+
 int main() {
   testCstr();
   testKeys();
@@ -162,4 +179,5 @@ int main() {
   testTypeCastingByCopy();
   testTypeCastingByMove();
   testDumps();
+  testLoads();
 }

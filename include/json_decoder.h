@@ -65,7 +65,7 @@ private:
   }
 
   bool isWhitespace(char ch) {
-    constexpr std::array<char, 4> whiteSpaces = {'\n', '\r\n', '\t', ' '};
+    constexpr std::array<char, 4> whiteSpaces = {'\n', '\r', '\t', ' '};
     for (auto ws : whiteSpaces) {
       if (ch == ws) {
         return true;
@@ -136,6 +136,9 @@ public:
           throw JsonDecodeError(m_iter.lineno(), m_iter.column(),
                                 "invalid escape sequence");
         }
+      } else if (m_iter.peek(0) == '"') {
+        m_iter.take_n(1);
+        break;
       } else {
         result.push_back(*m_iter++);
       }
@@ -224,6 +227,8 @@ public:
       }
 
       if (m_iter.take_n(1) != ":") {
+        json::log << "char = " << m_iter.peek_n(0, m_iter.remaining() + 1)
+                  << std::endl;
         throw JsonDecodeError(m_iter.lineno(), m_iter.column(),
                               "expected ':' after json key");
       }
@@ -232,7 +237,7 @@ public:
         consumeWhitespace();
       }
 
-      auto value = decode();
+      auto value = decodeJson();
       obj.insert({key, value});
 
       if (isWhitespace(m_iter.peek(0))) {
@@ -251,7 +256,35 @@ public:
     }
   }
 
-  Json decode() { return Json{}; }
+  Json decodeJson() {
+    json::log << "first char: " << m_iter.peek(0) << std::endl;
+    if (m_iter.peek(0) == '"') {
+      return parseJsonString();
+    }
+    if (m_iter.peek(0) == '{') {
+      return parseJsonObject();
+    }
+    if (m_iter.peek(0) == 't' || m_iter.peek(0) == 'f') {
+      return parseJsonBoolean();
+    }
+    if (m_iter.peek(0) == 'n') {
+      return parseJsonNull();
+    }
+    if (isDigit() || m_iter.peek(0) == '-') {
+      return parseJsonNumber();
+    }
+    throw JsonDecodeError(m_iter.lineno(), m_iter.column(),
+                          "invalid json data");
+  }
+
+  Json decode() {
+    auto result = decodeJson();
+    if (m_iter.remaining() > 0) {
+      throw JsonDecodeError(m_iter.lineno(), m_iter.column(),
+                            "extra data at the end");
+    }
+    return result;
+  }
 
 private:
   std::string_view m_str{};

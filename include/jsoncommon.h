@@ -87,7 +87,8 @@ std::string Json::dumps() const {
     std::size_t index = 0;
     for (auto rune : runeArray) {
       if (!rune.isValid()) {
-        throw std::runtime_error{std::string{"JsonEncodeError: position: "} + std::to_string(index)};
+        throw std::runtime_error{std::string{"JsonEncodeError: position: "} +
+                                 std::to_string(index)};
       }
       if (rune.isASCII()) {
         auto chr = static_cast<char>(rune);
@@ -156,111 +157,12 @@ std::string Json::dumps() const {
   }
 }
 
-/*
-static std::string parseJsonString(const std::string &str) {
-  std::string result;
-  for (std::size_t i = 1; i < str.size() - 1; ++i) {
-    auto ch = str[i];
-    if (i == str.size() - 1 && ch != '"') {
-      throw -1;
-    }
-    if (ch == '\\') {
-      if (i == str.size() - 1) {
-        throw -1;
-      }
-      auto nch = str[i + 1];
-      if (nch == 'n') {
-        result.push_back('\n');
-        ++i;
-      } else if (nch == 'r') {
-        result.push_back('\r');
-        ++i;
-      } else if (nch == 't') {
-        result.push_back('\t');
-        ++i;
-      } else if (nch == 'b') {
-        result.push_back('\b');
-        ++i;
-      } else if (nch == 'f') {
-        result.push_back('\f');
-        ++i;
-      } else if (nch == '"') {
-        result.push_back('"');
-        ++i;
-      } else if (nch == 'u') {
-        std::size_t j = i + 2;
-        auto first = std::stoi(str.substr(j, 4), nullptr, 16);
-        j += 4;
-        json::codecv2::UTF8Encoder utf8encoder;
-        json::codecv2::UTF16Decoder utf16decoder;
-        json::codec::Rune rune(first);
-        if (rune.isBMP()) {
-          result.append(utf8encoder.encode({rune}));
-        } else {
-          j += 2;
-          auto second = std::stoi(str.substr(j, 4), nullptr, 16);
-          j += 4;
-          std::basic_string<char16_t> toDecode;
-          toDecode.push_back(static_cast<char16_t>(first));
-          toDecode.push_back(static_cast<char16_t>(second));
-          auto runes = utf16decoder.decode(toDecode);
-          result.append(utf8encoder.encode(runes));
-        }
-        i = j - 1;
-        continue;
-      } else {
-        throw -1;
-      }
-    } else {
-      result.push_back(ch);
-    }
-  }
-  return result;
-}
-*/
-
 Json Json::loads(const std::string &s) {
-  if (s.size() == 0) {
-    // TODO: Figure out exception type
-    throw -1;
-  }
-  // step 1: Check encoding is utf-8 or not.
-  auto runes = json::codecv2::UTF8Decoder().decode(s);
-
-  // step 2: verify structure is according to json grammar.
-  // Identify outermost element.
-  auto rune = runes[0];
-  if (!rune.isASCII()) {
-    throw -1;
-  }
+  json::codecv2::UTF8Decoder().decode(s);
 
   JsonDecoder jsonDecoder(std::string_view{s});
 
-  Type outermostType = Type::null;
-  auto ch = static_cast<char>(rune);
-  if (ch == '{') {
-    outermostType = Type::object;
-  } else if (ch == '"') {
-    outermostType = Type::string;
-  } else if (rune.isDigit() or ch == '-') {
-    outermostType = Type::floating_point;
-  } else if (s == "true" || s == "false") {
-    outermostType = Type::boolean;
-  } else if (s == "null") {
-    outermostType = Type::null;
-  } else {
-    throw -1;
-  }
-
-  switch (outermostType) {
-  case Type::string:
-    return jsonDecoder.parseJsonString();
-  case Type::integer:
-  case Type::floating_point:
-    return jsonDecoder.parseJsonNumber();
-  default:
-    return Json();
-  }
+  return jsonDecoder.decode();
 }
 } // namespace json
 
