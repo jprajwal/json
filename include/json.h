@@ -23,6 +23,7 @@ enum class Type {
   integer,
   floating_point,
   boolean,
+  list,
 };
 
 class Json {
@@ -33,6 +34,7 @@ public:
   using int_t = std::int64_t;
   using float_t = double;
   using bool_t = bool;
+  using list_t = std::vector<Json>;
 
 public: // Constructors
   Json() : m_variant{} {}
@@ -56,6 +58,10 @@ public: // Constructors
 
   // Json boolean ctors
   Json(bool_t b) : m_variant{b} {}
+
+  // Json list ctors
+  Json(list_t &&list) : m_variant{std::forward<list_t>(list)} {}
+  Json(std::initializer_list<Json> &list) : m_variant{list_t{list}} {}
 
 public: // Json common operations
   Type type() const { return m_variant.type(); }
@@ -209,6 +215,41 @@ private: // Json Null private operations
     }
   }
 
+public: // Json list operations
+  bool isList() const { return m_variant.type() == Type::list; }
+  list_t &toList() const & {
+    assert_list_type();
+    return m_variant.list();
+  }
+
+  list_t toList() && {
+    assert_list_type();
+    return m_variant.extract_list();
+  }
+
+  operator list_t() const & {
+    assert_list_type();
+    return m_variant.list();
+  }
+
+  operator list_t() && {
+    assert_list_type();
+    return m_variant.extract_list();
+  }
+
+  class list_iterator;
+
+  list_iterator list_iter() const;
+  void push_back(list_t::value_type &&);
+  list_t::value_type &operator[](const std::size_t);
+  friend std::ostream &operator<<(std::ostream &out, const list_t &);
+
+private: // Json list private operations
+  void assert_list_type() const {
+    if (!isList())
+      throw std::runtime_error{"TypeError: not a json list"};
+  }
+
 public: // Json text generator operation (serializing operation)
   std::string dumps() const;
 
@@ -225,6 +266,7 @@ private:
       std::unique_ptr<int_t> m_pint;
       std::unique_ptr<float_t> m_pfloat;
       std::unique_ptr<bool_t> m_pbool;
+      std::unique_ptr<list_t> m_plist;
 
       Core() : m_pnull{Default<null_t>()} {}
 
@@ -239,6 +281,10 @@ private:
       Core(float_t n) : m_pfloat{make<float_t>(n)} {}
 
       Core(bool_t b) : m_pbool{make<bool_t>(b)} {}
+
+      Core(const list_t &l) : m_plist{make<list_t>(l)} {}
+
+      Core(list_t &&l) : m_plist{make<list_t>(l)} {}
 
       Core &operator=(string_t &&str) {
         constructInner<string_t>(&m_pstr, std::forward<string_t>(str));
@@ -270,11 +316,23 @@ private:
         return *this;
       }
 
+      Core &operator=(const list_t &l) {
+        constructInner<list_t>(&m_plist, l);
+        return *this;
+      }
+
+      Core &operator=(list_t &&l) {
+        constructInner<list_t>(&m_plist, l);
+        return *this;
+      }
+
       string_t &str() const { return *m_pstr; }
 
       null_t &null() const { return *m_pnull; }
 
       object_t &object() const { return *m_pobj; }
+
+      list_t &list() const { return *m_plist; }
 
       int_t integer() const { return *m_pint; }
 
@@ -287,6 +345,8 @@ private:
       null_t extract_null() { return std::move(*m_pnull); }
 
       object_t extract_object() { return std::move(*m_pobj); }
+
+      list_t extract_list() { return std::move(*m_plist); }
 
       ~Core() {}
 
@@ -302,6 +362,8 @@ private:
 
       void delete_boolean() { m_pbool.~unique_ptr(); }
 
+      void delete_list() { m_plist.~unique_ptr(); }
+
       void delete_default() { delete_null(); }
 
     private:
@@ -310,12 +372,12 @@ private:
       }
 
       template <typename T, typename... Ts>
-      std::unique_ptr<T> make(Ts &&... args) {
+      std::unique_ptr<T> make(Ts &&...args) {
         return std::make_unique<T>(std::forward<Ts>(args)...);
       }
 
       template <typename T, typename... Ts>
-      void constructInner(std::unique_ptr<T> *inner, Ts &&... args) {
+      void constructInner(std::unique_ptr<T> *inner, Ts &&...args) {
         new (inner) std::unique_ptr<T>{make<T>(std::forward<Ts>(args)...)};
       }
 
@@ -345,6 +407,9 @@ private:
 
     CoreWrapper(bool_t b) : m_type{Type::boolean}, m_core{b} {}
 
+    CoreWrapper(list_t &&l)
+        : m_type{Type::list}, m_core{std::forward<list_t>(l)} {}
+
     CoreWrapper(const CoreWrapper &other) : m_type{other.m_type} {
       m_core.delete_default();
       switch (other.m_type) {
@@ -372,6 +437,9 @@ private:
       case Type::boolean:
         m_core = other.boolean();
         break;
+      case Type::list:
+        m_core = other.m_core.list();
+        break;
       default:
         break;
       }
@@ -398,6 +466,8 @@ private:
       case Type::boolean:
         m_core = other.boolean();
         break;
+      case Type::list:
+        m_core = other.m_core.extract_list();
       default:
         break;
       }
@@ -434,6 +504,9 @@ private:
       case Type::boolean:
         m_core = other.boolean();
         break;
+      case Type::list:
+        m_core = other.m_core.list();
+        break;
       default:
         break;
       }
@@ -463,6 +536,9 @@ private:
       case Type::boolean:
         m_core = other.boolean();
         break;
+      case Type::list:
+        m_core = other.m_core.extract_list();
+        break;
       default:
         break;
       }
@@ -476,6 +552,8 @@ private:
     null_t &null() const { return m_core.null(); }
 
     object_t &object() const { return m_core.object(); }
+
+    list_t &list() const { return m_core.list(); }
 
     int_t integer() const { return m_core.integer(); }
 
@@ -494,6 +572,8 @@ private:
     object_t extract_object() {
       return std::forward<object_t>(m_core.extract_object());
     }
+
+    list_t extract_list() { return m_core.extract_list(); }
 
   private:
     void deleteCoreInner() {
@@ -515,6 +595,9 @@ private:
       case Type::boolean:
         m_core.delete_boolean();
         break;
+      case Type::list:
+        m_core.delete_list();
+        break;
       default:
         break;
       }
@@ -529,5 +612,6 @@ private:
 #endif
 
 #include "jsoncommon.h"
+#include "jsonlist.h"
 #include "jsonobject.h"
 #include "jsonstring.h"

@@ -46,6 +46,9 @@ std::ostream &operator<<(std::ostream &out, const Json &jsn) {
     out << jsn.m_variant.boolean();
     out << std::noboolalpha;
     break;
+  case Type::list:
+    out << jsn.m_variant.list();
+    break;
   default:
     out << "Not Implemented";
   }
@@ -70,6 +73,8 @@ bool Json::operator==(const Json &other) const {
     return m_variant.boolean() == other.m_variant.boolean();
   case Type::null:
     return true;
+  case Type::list:
+    return m_variant.list() == other.m_variant.list();
   default:
     return false;
   }
@@ -135,12 +140,25 @@ std::string Json::dumps() const {
     std::size_t count = 0;
     for (auto &[key, value] : items()) {
       if (count > 0) {
-        result << ",";
+        result << ", ";
       }
-      result << Json{key}.dumps() << ":" << value.dumps();
+      result << Json{key}.dumps() << ": " << value.dumps();
       ++count;
     }
     result << '}';
+    return result.str();
+  }
+  case Type::list: {
+    result << '[';
+    std::size_t count = 0;
+    for (const auto &item : list_iter()) {
+      if (count > 0) {
+        result << ", ";
+      }
+      result << item.dumps();
+      ++count;
+    }
+    result << ']';
     return result.str();
   }
   case Type::integer:

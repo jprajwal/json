@@ -210,6 +210,20 @@ void testLoadsExtraComma() {
   }
 }
 
+void testLoadsEmptyObject() {
+
+  using json::Json;
+  std::string test = R"({})";
+  try {
+    Json js = Json::loads(test);
+    json::log << "loaded json = " << js << std::endl;
+    assert(js.toObject().empty());
+  } catch (json::JsonDecodeError &exc) {
+    json::log << exc.what() << std::endl;
+    assert(false);
+  }
+}
+
 void testLoadsMissingClosingBraces() {
 
   using json::Json;
@@ -248,4 +262,5 @@ int main() {
   testLoadsDifferentDataTypes();
   testLoadsExtraComma();
   testLoadsMissingClosingBraces();
+  testLoadsEmptyObject();
 }

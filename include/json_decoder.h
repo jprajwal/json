@@ -208,9 +208,15 @@ public:
 
     Json::object_t obj;
 
+    bool expectingMore = false;
     while (true) {
       if (isWhitespace(m_iter.peek(0))) {
         consumeWhitespace();
+      }
+
+      if (!expectingMore && m_iter.peek(0) == '}') {
+        m_iter.take_n(1);
+        return obj;
       }
 
       if (m_iter.peek(0) != '"') {
@@ -240,10 +246,12 @@ public:
         consumeWhitespace();
       }
 
+      expectingMore = false;
       auto end = m_iter.take_n(1);
       if (end == "}") {
         return obj;
       } else if (end == ",") {
+        expectingMore = true;
         continue;
       } else if (m_iter.remaining() <= 0) {
         throw JsonDecodeError(m_iter.lineno(), m_iter.column(),
@@ -251,6 +259,52 @@ public:
       } else {
         throw JsonDecodeError(m_iter.lineno(), m_iter.column(),
                               "expecting ',' after key, value pair");
+      }
+    }
+  }
+
+  Json parseJsonList() {
+    if (m_iter.peek(0) != '[') {
+      throw JsonDecodeError(m_iter.lineno(), m_iter.column(),
+                            "not a json list");
+    }
+
+    // consume '['
+    m_iter.take_n(1);
+
+    Json::list_t list;
+
+    bool expectingMore = false;
+    while (true) {
+      if (isWhitespace(m_iter.peek(0))) {
+        consumeWhitespace();
+      }
+
+      if (!expectingMore && m_iter.peek(0) == ']') {
+        m_iter.take_n(1);
+        return list;
+      }
+
+      auto item = decodeJson();
+      list.push_back(item);
+
+      if (isWhitespace(m_iter.peek(0))) {
+        consumeWhitespace();
+      }
+
+      expectingMore = false;
+      auto end = m_iter.take_n(1);
+      if (end == "]") {
+        return list;
+      } else if (end == ",") {
+        expectingMore = true;
+        continue;
+      } else if (m_iter.remaining() <= 0) {
+        throw JsonDecodeError(m_iter.lineno(), m_iter.column(),
+                              "missing closing bracket");
+      } else {
+        throw JsonDecodeError(m_iter.lineno(), m_iter.column(),
+                              "expecting ',' after list item");
       }
     }
   }
@@ -270,6 +324,9 @@ public:
     }
     if (isDigit() || m_iter.peek(0) == '-') {
       return parseJsonNumber();
+    }
+    if (m_iter.peek(0) == '[') {
+      return parseJsonList();
     }
     throw JsonDecodeError(m_iter.lineno(), m_iter.column(),
                           "invalid json data");
