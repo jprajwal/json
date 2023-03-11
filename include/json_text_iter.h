@@ -64,14 +64,6 @@ public:
     return iter;
   }
 
-  // bool operator<(const JsonTextIter &other) const {
-  //   return m_iter < other.m_iter;
-  // }
-
-  // bool operator>(const JsonTextIter &other) const {
-  //   return !(operator<(other));
-  // }
-  //
   value_type peek(std::size_t offset) {
     if ((offset < 0) || (m_iter + offset) >= m_str.cend()) {
       return eof();

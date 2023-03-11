@@ -38,6 +38,9 @@ std::ostream &operator<<(std::ostream &out, const Json &jsn) {
   case Type::integer:
     out << jsn.m_variant.integer();
     break;
+  case Type::floating_point:
+    out << jsn.m_variant.floating_point();
+    break;
   case Type::boolean:
     out << std::boolalpha;
     out << jsn.m_variant.boolean();

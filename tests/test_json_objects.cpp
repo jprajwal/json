@@ -151,7 +151,11 @@ void testLoads() {
 
   using json::Json;
   std::string test =
-      R"({"test_key": {"test_nested_key": "test_nested_value"}})";
+      R"({
+          "test_key": {
+            "test_nested_key": "test_nested_value"
+          }
+        })";
   try {
     Json js = Json::loads(test);
     assert(js.type() == json::Type::object);
@@ -161,6 +165,67 @@ void testLoads() {
   } catch (json::JsonDecodeError &exc) {
     json::log << exc.what() << std::endl;
     throw;
+  }
+}
+
+void testLoadsDifferentDataTypes() {
+
+  using json::Json;
+  std::string test =
+      R"({
+          "test_key": {
+            "test_nested_key": "test_nested_value",
+            "k2": 1234,
+            "k3": -1234,
+            "k4": 1234.1234,
+            "k5": true,
+            "k6": false,
+            "k7": null
+          }
+        })";
+  try {
+    Json js = Json::loads(test);
+    json::log << "loaded json = " << js << std::endl;
+  } catch (json::JsonDecodeError &exc) {
+    json::log << exc.what() << std::endl;
+    assert(false);
+  }
+}
+void testLoadsExtraComma() {
+
+  using json::Json;
+  std::string test =
+      R"({
+          "test_key": {
+            "test_nested_key": "test_nested_value",
+          }
+        })";
+  try {
+    Json js = Json::loads(test);
+    json::log << "loaded json = " << js << std::endl;
+    assert(false);
+  } catch (json::JsonDecodeError &exc) {
+    json::log << exc.what() << std::endl;
+    assert(true);
+  }
+}
+
+void testLoadsMissingClosingBraces() {
+
+  using json::Json;
+  std::string test =
+      R"({
+          "test_key": {
+            "test_nested_key": "test_nested_value"
+          }
+        )";
+  try {
+    Json js = Json::loads(test);
+    json::log << "loaded json = " << js << std::endl;
+    assert(false);
+  } catch (json::JsonDecodeError &exc) {
+    json::log << exc.what() << std::endl;
+    assert(true);
   }
 }
 
@@ -180,4 +245,7 @@ int main() {
   testTypeCastingByMove();
   testDumps();
   testLoads();
+  testLoadsDifferentDataTypes();
+  testLoadsExtraComma();
+  testLoadsMissingClosingBraces();
 }

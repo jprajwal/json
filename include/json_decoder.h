@@ -153,12 +153,10 @@ public:
 
     auto pos = m_str.substr(m_iter.index(), m_iter.remaining() + 1)
                    .find_first_not_of("0123456789.eE-+");
-    json::log << "pos = " << pos << std::endl;
     if (pos == std::string_view::npos) {
-      pos = m_str.length() - 1;
+      pos = m_str.length();
     }
-    auto number = m_iter.take_n(pos + 1);
-    json::log << "number = " << number << std::endl;
+    auto number = m_iter.take_n(pos);
     try {
       if (number.find('.') == std::string::npos) {
         auto parsedNumber = std::stoi(number);
@@ -177,7 +175,7 @@ public:
   }
 
   Json parseJsonBoolean() {
-    if (m_iter.peek(0) != 't' || m_iter.peek(0) != 'f') {
+    if (m_iter.peek(0) != 't' && m_iter.peek(0) != 'f') {
       throw JsonDecodeError(m_iter.lineno(), m_iter.column(), "not a boolean");
     }
     if (m_iter.peek_n(0, 4) == "true") {
@@ -227,8 +225,6 @@ public:
       }
 
       if (m_iter.take_n(1) != ":") {
-        json::log << "char = " << m_iter.peek_n(0, m_iter.remaining() + 1)
-                  << std::endl;
         throw JsonDecodeError(m_iter.lineno(), m_iter.column(),
                               "expected ':' after json key");
       }
@@ -249,6 +245,9 @@ public:
         return obj;
       } else if (end == ",") {
         continue;
+      } else if (m_iter.remaining() <= 0) {
+        throw JsonDecodeError(m_iter.lineno(), m_iter.column(),
+                              "missing closing braces");
       } else {
         throw JsonDecodeError(m_iter.lineno(), m_iter.column(),
                               "expecting ',' after key, value pair");
@@ -257,7 +256,6 @@ public:
   }
 
   Json decodeJson() {
-    json::log << "first char: " << m_iter.peek(0) << std::endl;
     if (m_iter.peek(0) == '"') {
       return parseJsonString();
     }
