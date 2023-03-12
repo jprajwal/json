@@ -1,7 +1,7 @@
 #ifndef JSON_CODEC_UTF8CONTINUATIONCODEUNIT_H
 #define JSON_CODEC_UTF8CONTINUATIONCODEUNIT_H
 
-#include "codec/continuationcodeunit.h"
+#include "json/codec/continuationcodeunit.h"
 
 namespace json {
 namespace codec {

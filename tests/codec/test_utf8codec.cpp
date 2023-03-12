@@ -1,5 +1,5 @@
-#include "codec/utf8codec.h"
-#include "test.h"
+#include "json/codec/utf8codec.h"
+#include "json/test.h"
 
 #include <algorithm>
 #include <bits/c++config.h>
@@ -22,8 +22,8 @@ std::ostream &operator<<(std::ostream &out, const std::vector<T> &vec) {
 }
 
 template <>
-std::ostream &operator<<<char>(std::ostream &out,
-                               const std::vector<char> &vec) {
+std::ostream &operator<< <char>(std::ostream &out,
+                                const std::vector<char> &vec) {
   out << '[';
   for (const auto &item : vec) {
     out << static_cast<std::uint16_t>(item) << ',';

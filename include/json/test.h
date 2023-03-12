@@ -1,7 +1,6 @@
 #ifndef JSON_TEST_H
 #define JSON_TEST_H
 #include <algorithm>
-#include <bits/c++config.h>
 #include <iostream>
 #include <ostream>
 

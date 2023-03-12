@@ -1,7 +1,7 @@
 #ifndef JSON_CODECV2_ENCODABLE_H
 #define JSON_CODECV2_ENCODABLE_H
 
-#include "codec/rune.h"
+#include "json/codec/rune.h"
 
 #include <string>
 #include <vector>

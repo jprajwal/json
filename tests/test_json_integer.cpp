@@ -1,6 +1,6 @@
-#include "json.h"
-#include "json_decode_error.h"
-#include "test.h"
+#include "json/json.h"
+#include "json/json_decode_error.h"
+#include "json/test.h"
 #include <cassert>
 
 void testInit() {

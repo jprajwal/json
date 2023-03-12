@@ -1,6 +1,6 @@
 
-#include "json.h"
-#include "test.h"
+#include "json/json.h"
+#include "json/test.h"
 
 #include <algorithm>
 #include <cassert>

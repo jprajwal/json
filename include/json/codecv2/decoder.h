@@ -1,12 +1,12 @@
 #ifndef JSON_CODECV2_DECODER_H
 #define JSON_CODECV2_DECODER_H
 
-#include "codec/rune.h"
-#include "codecv2/decodable.h"
-#include "codecv2/utf16_ccu.h"
-#include "codecv2/utf16_lcu.h"
-#include "codecv2/utf8_ccu.h"
-#include "codecv2/utf8_lcu.h"
+#include "json/codec/rune.h"
+#include "json/codecv2/decodable.h"
+#include "json/codecv2/utf16_ccu.h"
+#include "json/codecv2/utf16_lcu.h"
+#include "json/codecv2/utf8_ccu.h"
+#include "json/codecv2/utf8_lcu.h"
 
 #include <iterator>
 

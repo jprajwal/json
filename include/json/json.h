@@ -1,7 +1,7 @@
 #ifndef JSON_JSON_H
 #define JSON_JSON_H
 
-#include "null.h"
+#include "json/null.h"
 
 #include <cstdint>
 #include <initializer_list>

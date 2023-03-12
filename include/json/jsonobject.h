@@ -1,7 +1,7 @@
 #ifndef JSON_JSONOBJECT_H
 #define JSON_JSONOBJECT_H
 
-#include "json.h"
+#include "json/json.h"
 
 #include <algorithm>
 #include <cstddef>

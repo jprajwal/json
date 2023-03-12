@@ -1,6 +1,6 @@
-#include "codec/rune.h"
-#include "codec/utf16codec.h"
-#include "test.h"
+#include "json/codec/rune.h"
+#include "json/codec/utf16codec.h"
+#include "json/test.h"
 #include <cassert>
 
 namespace utf16 = json::codec::utf16;

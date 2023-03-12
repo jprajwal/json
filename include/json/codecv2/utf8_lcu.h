@@ -1,7 +1,7 @@
 #ifndef JSON_CODECV2_UTF8_LCU_H
 #define JSON_CODECV2_UTF8_LCU_H
 
-#include "codecv2/lcutrait.h"
+#include "json/codecv2/lcutrait.h"
 
 namespace json {
 namespace codecv2 {

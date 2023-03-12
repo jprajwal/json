@@ -1,8 +1,8 @@
 #ifndef JSON_CODECV2_ENCODER_H
 #define JSON_CODECV2_ENCODER_H
 
-#include "codecv2/encodable.h"
-#include "test.h"
+#include "json/codecv2/encodable.h"
+#include "json/test.h"
 #include <string>
 namespace json {
 namespace codecv2 {

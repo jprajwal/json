@@ -1,6 +1,6 @@
 #ifndef JSON_CODEC_UTF8LEADINGCODEUNIT_H
 #define JSON_CODEC_UTF8LEADINGCODEUNIT_H
-#include "codec/leadingcodeunit.h"
+#include "json/codec/leadingcodeunit.h"
 #include <string>
 
 namespace json {

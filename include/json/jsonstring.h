@@ -1,7 +1,7 @@
 #ifndef JSON_JSONSTRING_H
 #define JSON_JSONSTRING_H
 
-#include "json.h"
+#include "json/json.h"
 
 #include <algorithm>
 #include <iterator>

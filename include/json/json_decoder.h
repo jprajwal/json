@@ -1,12 +1,12 @@
 #ifndef JSON_JSON_DECODER_H
 #define JSON_JSON_DECODER_H
 
-#include "codecv2/decoder.h"
-#include "codecv2/encoder.h"
-#include "json.h"
-#include "json_decode_error.h"
-#include "json_text_iter.h"
-#include "test.h"
+#include "json/codecv2/decoder.h"
+#include "json/codecv2/encoder.h"
+#include "json/json.h"
+#include "json/json_decode_error.h"
+#include "json/json_text_iter.h"
+#include "json/test.h"
 
 #include <algorithm>
 #include <array>

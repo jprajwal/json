@@ -2,7 +2,7 @@
 #ifndef JSON_CODECV2_UTF16_CCU_H
 #define JSON_CODECV2_UTF16_CCU_H
 
-#include "codecv2/ccutrait.h"
+#include "json/codecv2/ccutrait.h"
 
 namespace json {
 namespace codecv2 {

@@ -1,7 +1,7 @@
 #ifndef JSON_CODEC_ICHAR_H
 #define JSON_CODEC_ICHAR_H
 
-#include "test.h"
+#include "json/test.h"
 
 #include <stdexcept>
 
